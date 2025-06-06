@@ -1,0 +1,162 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SystemBackend.Data;
+using SystemBackend.Mappers;
+using SystemBackend.Models.DTO;
+using SystemBackend.Models.Entities;
+using SystemBackend.Services.Interfaces;
+
+namespace SystemBackend.Controllers
+{
+    [Route("api/logs")]
+    [ApiController]
+    [Authorize]
+    public class LogsController : ControllerBase
+    {
+        private readonly ILogService _logService;
+        private readonly ICivilianService _civilianService;
+        private readonly IDeviceService _deviceService;
+        private readonly IRoomService _roomService;
+        public LogsController(ILogService logService, ICivilianService civilianService, IDeviceService deviceService, IRoomService roomService)
+        {
+            _logService = logService;
+            _civilianService = civilianService;
+            _deviceService = deviceService;
+            _roomService = roomService;
+        }
+
+        [HttpGet("{logId}")]
+        public IActionResult GetLogById(Guid logId)
+        {
+            var log = _logService.GetLogById(logId);
+            if (log == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Log not found." }
+                });
+            }
+
+            return Ok(log.FromLogToLogDetailDto());
+        }
+
+        [HttpGet("")]
+        public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        {
+            var logs = _logService.GetLogs(cursorId, fromTime, toTime, next, limit);
+            return Ok(new
+            {
+                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                count = logs.Count,
+                data = logs
+            });
+        }
+
+        [HttpGet("civilian/{civilianId}")]
+        public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        {
+            if(_civilianService.GetCivilianById(civilianId) == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Civilian not found." }
+                });
+            }
+
+            var logs = _logService.GetLogsByCivilian(civilianId, cursorId, fromTime, toTime, next, limit);
+            return Ok(new
+            {
+                cursorId = logs.Count == 0 ? (Guid?) null : logs.Last().Id,
+                count = logs.Count,
+                data = logs
+            });
+        }
+
+        [HttpGet("room/{roomId}")]
+        public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        {
+            if (_roomService.GetRoomById(roomId) == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Room not found." }
+                });
+            }
+
+            var logs = _logService.GetLogsByRoom(roomId, cursorId, fromTime, toTime, next, limit);
+            return Ok(new
+            {
+                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                count = logs.Count,
+                data = logs
+            });
+        }
+
+        [HttpGet("device/{deviceId}")]
+        public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        {
+            if (_deviceService.GetDeviceById(deviceId) == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Device not found." }
+                });
+            }
+
+            var logs = _logService.GetLogsByDevice(deviceId, cursorId, fromTime, toTime, next, limit);
+            return Ok(new
+            {
+                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                count = logs.Count,
+                data = logs
+            });
+        }
+
+        [HttpPost("")]
+        [AllowAnonymous]
+        public IActionResult AddLog([FromForm] AddLogFromDeviceDto addLogDto)
+        {
+            var device = _deviceService.GetDeviceById(addLogDto.DeviceId);
+            if (device == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Device not found." }
+                });
+            }
+
+            var roomMember = _deviceService.GetMember(addLogDto.DeviceId, addLogDto.CivilianId);
+            if (roomMember == null)
+            {
+                return NotFound(new 
+                {
+                    error = new { message = "Room member not found." }
+                });
+            }
+
+            try
+            {
+                var newLog = _logService.CreateLog(addLogDto);
+                if(newLog == null)
+                {
+                    return StatusCode(500, new
+                    {
+                        error = new { message = "Internal server error." }
+                    });
+
+                }
+
+                return CreatedAtAction(nameof(GetLogById), new { logId = newLog.Id }, newLog.FromLogToLogDto());
+            }
+            catch(Exception)
+            {
+                return StatusCode(500, new
+                {
+                    error = new { message = "Internal server error." }
+                });
+            }
+        }
+    }
+}

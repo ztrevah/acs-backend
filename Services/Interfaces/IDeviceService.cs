@@ -1,0 +1,16 @@
+﻿using SystemBackend.Models.DTO;
+using SystemBackend.Models.Entities;
+
+namespace SystemBackend.Services.Interfaces
+{
+    public interface IDeviceService
+    {
+        public Device? GetDeviceById(Guid id);
+        public Device? AddDevice(AddDeviceDto addDeviceDto);
+        public Device? UpdateDevice(Guid id, UpdateDeviceDto updateDeviceDto);
+        public List<Device> GetDevices(Guid? cursorId = null, bool next = true, int limit = 20);
+        public List<Device> GetDevicesByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int limit = 20);
+        public Civilian? GetMember(Guid deviceId, String memberId);
+        public RoomMember? AddMember(Guid deviceId, String civilianId);
+    }
+}
