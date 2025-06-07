@@ -23,12 +23,12 @@ namespace SystemBackend.Services
             return _civilianRepository.GetById(id);
         }
 
-        public List<Civilian> GetCivilians(string? cursorId = null, bool next = true, int limit = 20)
+        public List<Civilian> GetCivilians(string? cursorId = null, bool next = true, int? limit = null)
         {
             return _civilianRepository.Get(cursorId, next, limit);
         }
 
-        public List<RoomMember> GetRoomMembers(string civilianId, Guid? roomMemberCursorId = null, bool next = true, int limit = 20)
+        public List<RoomMember> GetRoomMembers(string civilianId, Guid? roomMemberCursorId = null, bool next = true, int? limit = null)
         {
             if(_civilianRepository.GetById(civilianId) == null)
             {
@@ -38,7 +38,7 @@ namespace SystemBackend.Services
             return _roomMemberRepository.GetByMemberId(civilianId, roomMemberCursorId, next, limit);
         }
 
-        public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int limit = 20)
+        public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null)
         {
             if (_civilianRepository.GetById(civilianId) == null)
             {

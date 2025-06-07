@@ -38,43 +38,38 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return room;
         }
-        public List<Room> Get(Guid? cursorId = null, bool next = true, int limit = 20)
+        public List<Room> Get(Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var rooms = next ? _dbContext.Rooms
-                .Where(r => (cursorId == null || r.Id > cursorId))
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Rooms
-                .Where(r => (cursorId == null || r.Id < cursorId))
-                .OrderByDescending(r => r.Id)
-                .Take(limit)
-                .ToList();
+            var query = _dbContext.Rooms.AsQueryable();
+
+            if (next) query = query.Where(r => (cursorId == null || r.Id >= cursorId))
+                    .Distinct().OrderBy(r => r.Id);
+            else query = query.Where(r => (cursorId == null || r.Id <= cursorId))
+                    .OrderByDescending(r => r.Id);
+
+            if(limit != null && limit >= 0) query = query.Take((int) limit);
+
+            var rooms = query.ToList();
 
             return rooms;
 
         }
 
-        public List<Room> GetAccessibleRoomsByMember(string civilianId, Guid? cursorId = null, bool next = true, int limit = 20)
+        public List<Room> GetAccessibleRoomsByMember(string civilianId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var rooms = next ? _dbContext.RoomMembers
-                .Where(rm => rm.MemberId == civilianId)
-                .Include(rm => rm.Room)
-                .OrderBy(rm => rm.RoomId)
-                .Where(r => (cursorId == null || r.RoomId > cursorId))
-                .Take(limit)
-                .Select(rm => rm.Room)
-                .ToList()
-                :
-                _dbContext.RoomMembers
-                .Where(rm => rm.MemberId == civilianId)
-                .Include(rm => rm.Room)
-                .OrderByDescending(rm => rm.RoomId)
-                .Where(r => (cursorId == null || r.RoomId < cursorId))
-                .Take(limit)
-                .Select(rm => rm.Room)
-                .ToList();
+            var query = _dbContext.RoomMembers.AsQueryable();
+            query = query.Where(rm => rm.MemberId == civilianId)
+                .Include(rm => rm.Room);
 
+            if (next) query = query.Where(r => (cursorId == null || r.RoomId >= cursorId))
+                .OrderBy(rm => rm.RoomId);
+            else query = query.Where(r => (cursorId == null || r.RoomId <= cursorId))
+                .OrderByDescending(rm => rm.RoomId);
+
+            if (limit != null && limit >= 0) query.Take((int) limit);
+
+            var rooms = query.Select(rm => rm.Room).ToList();
+            
             return rooms;
         }
 
@@ -102,24 +97,21 @@ namespace SystemBackend.Repositories
             return _dbContext.RoomMembers.FirstOrDefault(rm => rm.RoomId == roomId && rm.MemberId == civilianId);
         }
 
-        public List<Civilian> GetRoomMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int limit = 20)
+        public List<Civilian> GetRoomMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null)
         {
-            var members = next ? _dbContext.RoomMembers
-                .Where(rm => rm.RoomId == roomId)
-                .Include(rm => rm.Member)                
-                .Where(rm => civilianCursorId == null || rm.MemberId.CompareTo(civilianCursorId) > 0)
-                .OrderBy(rm => rm.MemberId)
-                .Take(limit)
-                .Select(rm => rm.Member)
-                .ToList()
-                :
-                _dbContext.RoomMembers
-                .Where(rm => rm.RoomId == roomId)
-                .Include(rm => rm.Member)
-                .Where(rm => civilianCursorId == null || rm.MemberId.CompareTo(civilianCursorId) < 0)
-                .OrderByDescending(rm => rm.MemberId)
-                .Take(limit)
-                .Select(rm => rm.Member)
+            var query = _dbContext.RoomMembers.AsQueryable();
+
+            query = query.Where(rm => rm.RoomId == roomId)
+                .Include(rm => rm.Member);
+
+            if (next) query = query.Where(rm => civilianCursorId == null || rm.MemberId.CompareTo(civilianCursorId) >= 0)
+                .OrderBy(rm => rm.MemberId);
+            else query = query.Where(rm => civilianCursorId == null || rm.MemberId.CompareTo(civilianCursorId) <= 0)
+                .OrderByDescending(rm => rm.MemberId);
+
+            if(limit != null && limit >= 0) query = query.Take((int) limit);
+
+            var members = query.Select(rm => rm.Member)
                 .ToList();
 
             return members;

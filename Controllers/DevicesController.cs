@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SystemBackend.Data;
 using SystemBackend.Mappers;
 using SystemBackend.Models.DTO;
-using SystemBackend.Models.Entities;
 using SystemBackend.Services.Interfaces;
 
 namespace SystemBackend.Controllers
@@ -24,14 +21,25 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetDevices(Guid? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetDevices(Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var devices = _deviceService.GetDevices(cursorId, next, limit)
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
+            var devices = _deviceService.GetDevices(cursorId, next, limit + 1)
                 .Select(d => d.FromDeviceToDeviceDto())
                 .ToList();
+
+            var nextId = (devices.Count == limit + 1) ? devices.Last().Id : (Guid?)null;
+            if (devices.Count == limit + 1) devices.Remove(devices.Last());
             return Ok(new
             {
-                cursorId = devices.Count == 0 ? (Guid?)null : devices.Last().Id,
+                cursorId = nextId,
                 count = devices.Count,
                 data = devices
             });

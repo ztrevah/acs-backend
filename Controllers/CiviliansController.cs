@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SystemBackend.Mappers;
 using SystemBackend.Models.DTO;
+using SystemBackend.Models.Entities;
 using SystemBackend.Services.Interfaces;
 
 namespace SystemBackend.Controllers
@@ -18,15 +19,25 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetAllCivilians(string? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetAllCivilians(string? cursorId = null, bool next = true, int? limit = null)
         {
-            var civilians = _civilianService.GetCivilians(cursorId, next, limit)
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
+            var civilians = _civilianService.GetCivilians(cursorId, next, limit + 1)
                 .Select(c => c.FromCivilianToCivilianDto())
                 .ToList();
-            Console.WriteLine(civilians);
+
+            var nextId = (civilians.Count == limit + 1) ? civilians.Last().Id : null;
+            if (civilians.Count == limit + 1) civilians.Remove(civilians.Last());
             return Ok(new
             {
-                cursorId = civilians.Count == 0 ? null : civilians.Last().Id,
+                cursorId = nextId,
                 count = civilians.Count,
                 data = civilians
             });
@@ -119,8 +130,16 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{civilianId}/rooms")]
-        public IActionResult GetAccessibleRooms([FromRoute] string civilianId, Guid? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetAccessibleRooms([FromRoute] string civilianId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
             var civilian = _civilianService.GetCivilianById(civilianId);
             if(civilian == null)
             {
@@ -130,11 +149,15 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var accessibleRooms = _civilianService.GetAccessibleRooms(civilianId, cursorId, next, limit);
+            var accessibleRooms = _civilianService.GetAccessibleRooms(civilianId, cursorId, next, limit + 1)
+                .Select(r => r.FromRoomToRoomDto())
+                .ToList();
 
+            var nextId = (accessibleRooms.Count == limit + 1) ? accessibleRooms.Last().Id : (Guid?)null;
+            if (accessibleRooms.Count == limit + 1) accessibleRooms.Remove(accessibleRooms.Last());
             return Ok(new
             {
-                cursorId = accessibleRooms.Count == 0 ? (Guid?) null : accessibleRooms.Last().Id,
+                cursorId = nextId,
                 count = accessibleRooms.Count,
                 data = accessibleRooms
             });

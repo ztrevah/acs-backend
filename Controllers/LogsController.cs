@@ -45,10 +45,20 @@ namespace SystemBackend.Controllers
         [HttpGet("")]
         public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
         {
-            var logs = _logService.GetLogs(cursorId, fromTime, toTime, next, limit);
+            if(limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+            var logs = _logService.GetLogs(cursorId, fromTime, toTime, next, limit + 1);
+
+            var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
+            if (logs.Count == limit + 1) logs.Remove(logs.Last());
             return Ok(new
             {
-                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                cursorId = nextId,
                 count = logs.Count,
                 data = logs
             });
@@ -57,7 +67,15 @@ namespace SystemBackend.Controllers
         [HttpGet("civilian/{civilianId}")]
         public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
         {
-            if(_civilianService.GetCivilianById(civilianId) == null)
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
+            if (_civilianService.GetCivilianById(civilianId) == null)
             {
                 return NotFound(new
                 {
@@ -65,10 +83,13 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByCivilian(civilianId, cursorId, fromTime, toTime, next, limit);
+            var logs = _logService.GetLogsByCivilian(civilianId, cursorId, fromTime, toTime, next, limit + 1);
+
+            var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
+            if (logs.Count == limit + 1) logs.Remove(logs.Last());
             return Ok(new
             {
-                cursorId = logs.Count == 0 ? (Guid?) null : logs.Last().Id,
+                cursorId = nextId,
                 count = logs.Count,
                 data = logs
             });
@@ -77,6 +98,14 @@ namespace SystemBackend.Controllers
         [HttpGet("room/{roomId}")]
         public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
         {
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
             if (_roomService.GetRoomById(roomId) == null)
             {
                 return NotFound(new
@@ -85,10 +114,13 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByRoom(roomId, cursorId, fromTime, toTime, next, limit);
+            var logs = _logService.GetLogsByRoom(roomId, cursorId, fromTime, toTime, next, limit + 1);
+
+            var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
+            if (logs.Count == limit + 1) logs.Remove(logs.Last());
             return Ok(new
             {
-                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                cursorId = nextId,
                 count = logs.Count,
                 data = logs
             });
@@ -97,6 +129,14 @@ namespace SystemBackend.Controllers
         [HttpGet("device/{deviceId}")]
         public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
         {
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
             if (_deviceService.GetDeviceById(deviceId) == null)
             {
                 return NotFound(new
@@ -105,10 +145,13 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByDevice(deviceId, cursorId, fromTime, toTime, next, limit);
+            var logs = _logService.GetLogsByDevice(deviceId, cursorId, fromTime, toTime, next, limit + 1);
+
+            var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
+            if (logs.Count == limit + 1) logs.Remove(logs.Last());
             return Ok(new
             {
-                cursorId = logs.Count == 0 ? (Guid?)null : logs.Last().Id,
+                cursorId = nextId,
                 count = logs.Count,
                 data = logs
             });

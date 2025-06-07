@@ -64,22 +64,22 @@ namespace SystemBackend.Services
             }
         }
 
-        public List<Log> GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
             return _logRepository.Get(cursorId, fromTime, toTime, next, limit);
         }
 
-        public List<Log> GetLogsByCivilian(string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetLogsByCivilian(string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
             return _logRepository.GetByCivilianId(civilianId, cursorId, fromTime, toTime, next, limit);
         }
 
-        public List<Log> GetLogsByDevice(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetLogsByDevice(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
             return _logRepository.GetByDeviceId(deviceId, cursorId, fromTime, toTime, next, limit);
         }
 
-        public List<Log> GetLogsByRoom(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetLogsByRoom(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
             return _logRepository.GetByRoomId(roomId, cursorId, fromTime, toTime, next, limit);
         }

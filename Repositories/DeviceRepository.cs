@@ -15,7 +15,7 @@ namespace SystemBackend.Repositories
         }
         public Device? GetById(Guid id)
         {
-            return _dbContext.Devices.FirstOrDefault(d => d.Id.Equals(id));
+            return _dbContext.Devices.FirstOrDefault(d => d.Id == id);
         }
         public Device Create(Device device)
         {
@@ -25,7 +25,7 @@ namespace SystemBackend.Repositories
         }
         public Device? Update(Guid id, Device device)
         {
-            var existingDevice = _dbContext.Devices.FirstOrDefault(d => d.Id.Equals(id));
+            var existingDevice = _dbContext.Devices.FirstOrDefault(d => d.Id == id);
             if(existingDevice == null)
             {
                 return null;
@@ -35,37 +35,34 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return existingDevice;
         }
-        public List<Device> Get(Guid? cursorId = null, bool next = true, int limit = 10)
+        public List<Device> Get(Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var devices = next ? _dbContext.Devices
-                .OrderBy(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) > 0))
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Devices
-                .OrderByDescending(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) < 0))
-                .Take(limit)
-                .ToList();
+            var query = _dbContext.Devices.AsQueryable();
+
+            if (next) query = query.OrderBy(d => d.Id)
+                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0));
+            else query = query.OrderByDescending(d => d.Id)
+                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0));
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var devices = query.ToList();
 
             return devices;
         }
-        public List<Device> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int limit = 10)
+        public List<Device> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var devices = next ? _dbContext.Devices
-                .OrderBy(d => d.Id)
-                .Where(d => d.RoomId == roomId)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) > 0))
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Devices
-                .OrderByDescending(d => d.Id)
-                .Where(d => d.RoomId == roomId)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) < 0))
-                .Take(limit)
-                .ToList();
+            var query = _dbContext.Devices.AsQueryable();
+            query = query.Where(d => d.RoomId == roomId);
+
+            if (next) query = query.OrderBy(d => d.Id)
+                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0));
+            else query = query.OrderByDescending(d => d.Id)
+                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0));
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var devices = query.ToList();
 
             return devices;
         }

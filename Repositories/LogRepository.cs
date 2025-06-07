@@ -22,228 +22,127 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return log;
         }
-        public List<Log> Get(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> Get(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
-            List<Log> logs = [];
-            if(cursorId == null)
-            {
-                logs = next ? _dbContext.Logs
-                    .Where(l => (fromTime == null && toTime == null)
+            var query = _dbContext.Logs.AsQueryable();
+            query = query.Where(l => (fromTime == null && toTime == null)
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderBy(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList()
-                    :
-                    _dbContext.Logs
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList();
+                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
 
-                return logs;
-            }
-            var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
-            if(cursorLog == null)
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
+
+            if(cursorId != null)
             {
-                return [];
+                var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
+                if (cursorLog != null)
+                {
+                    if(next) query = query.Where(l => (l.CreatedAt > cursorLog.CreatedAt) 
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                    else query = query.Where(l => (l.CreatedAt < cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                }
+
             }
 
-            logs = next ? _dbContext.Logs
-                .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt > cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderBy(l => l.CreatedAt)
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Logs
-                .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt < cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderByDescending(l => l.CreatedAt)
-                .Take(limit)
-                .ToList();
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var logs = query.ToList();
 
             return logs;
         }
-        public List<Log> GetByDeviceId(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetByDeviceId(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
-            List<Log> logs = [];
-            if (cursorId == null)
-            {
-                logs = next ? _dbContext.Logs
-                    .Where(l => l.DeviceId == deviceId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderBy(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList()
-                    :
-                    _dbContext.Logs
-                    .Where(l => l.DeviceId == deviceId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList();
-
-                return logs;
-            }
-            var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
-            if (cursorLog == null)
-            {
-                return [];
-            }
-
-            logs = next ? _dbContext.Logs
-                .Where(l => l.DeviceId == deviceId)
+            var query = _dbContext.Logs.AsQueryable();
+            query = query.Where(l => l.DeviceId == deviceId)
                 .Where(l => (fromTime == null && toTime == null)
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt > cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderBy(l => l.CreatedAt)
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Logs
-                .Where(l => l.DeviceId == deviceId)
-                .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt < cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderByDescending(l => l.CreatedAt)
-                .Take(limit)
-                .ToList();
+                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
+
+            if (cursorId != null)
+            {
+                var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
+                if (cursorLog != null)
+                {
+                    if (next) query = query.Where(l => (l.CreatedAt > cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                    else query = query.Where(l => (l.CreatedAt < cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                }
+
+            }
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var logs = query.ToList();
 
             return logs;
         }
         
-        public List<Log> GetByRoomId(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetByRoomId(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
-            List<Log> logs = [];
-            if (cursorId == null)
-            {
-                logs = next ? _dbContext.Logs
-                    .Where(l => l.RoomId == roomId)
-                    .Where(l => (fromTime == null && toTime == null)
+            var query = _dbContext.Logs.AsQueryable();
+            query = query.Where(l => l.RoomId == roomId)
+                .Where(l => (fromTime == null && toTime == null)
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderBy(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList()
-                    :
-                    _dbContext.Logs
-                    .Where(l => l.RoomId == roomId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList();
+                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
 
-                return logs;
-            }
-            var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
-            if (cursorLog == null)
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
+
+            if (cursorId != null)
             {
-                return [];
+                var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
+                if (cursorLog != null)
+                {
+                    if (next) query = query.Where(l => (l.CreatedAt > cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                    else query = query.Where(l => (l.CreatedAt < cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                }
+
             }
 
-            logs = next ? _dbContext.Logs
-                    .Where(l => l.RoomId == roomId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .Where(l => l.CreatedAt > cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                    .OrderBy(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList()
-                    :
-                     _dbContext.Logs
-                    .Where(l => l.RoomId == roomId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .Where(l => l.CreatedAt < cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList();
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var logs = query.ToList();
 
             return logs;
         }
-        public List<Log> GetByCivilianId(String civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public List<Log> GetByCivilianId(string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
         {
-            List<Log> logs = [];
-            if (cursorId == null)
-            {
-                logs = next ? _dbContext.Logs
-                    .Where(l => l.CivilianId == civilianId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderBy(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList()
-                    :
-                    _dbContext.Logs
-                    .Where(l => l.CivilianId == civilianId)
-                    .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                    .OrderByDescending(l => l.CreatedAt)
-                    .Take(limit)
-                    .ToList();
-
-                return logs;
-            }
-            var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
-            if (cursorLog == null)
-            {
-                return [];
-            }
-
-            logs = next ? _dbContext.Logs
-                .Where(l => l.CivilianId == civilianId)
+            var query = _dbContext.Logs.AsQueryable();
+            query = query.Where(l => l.CivilianId == civilianId)
                 .Where(l => (fromTime == null && toTime == null)
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt > cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderBy(l => l.CreatedAt)
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.Logs
-                .Where(l => l.CivilianId == civilianId)
-                .Where(l => (fromTime == null && toTime == null)
-                                || (fromTime == null && l.CreatedAt <= toTime)
-                                || (toTime == null && l.CreatedAt >= fromTime)
-                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime))
-                .Where(l => l.CreatedAt < cursorLog.CreatedAt || (l.CreatedAt == cursorLog.CreatedAt && l.Id > cursorId))
-                .OrderByDescending(l => l.CreatedAt)
-                .Take(limit)
-                .ToList();
+                                || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
+
+            if (cursorId != null)
+            {
+                var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
+                if (cursorLog != null)
+                {
+                    if (next) query = query.Where(l => (l.CreatedAt > cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                    else query = query.Where(l => (l.CreatedAt < cursorLog.CreatedAt)
+                                                    || (l.CreatedAt == cursorLog.CreatedAt && l.Id >= cursorId));
+                }
+
+            }
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var logs = query.ToList();
 
             return logs;
         }

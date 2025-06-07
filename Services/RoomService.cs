@@ -20,7 +20,7 @@ namespace SystemBackend.Services
             return _roomRepository.GetById(id);
         }
 
-        public List<Room> GetRooms(Guid? cursorId = null, bool next = true, int limit = 20)
+        public List<Room> GetRooms(Guid? cursorId = null, bool next = true, int? limit = null)
         {
             return _roomRepository.Get(cursorId, next, limit);
         }
@@ -42,7 +42,7 @@ namespace SystemBackend.Services
             return _roomRepository.Update(id, room);
         }
 
-        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int limit = 20)
+        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null)
         {
             return _deviceRepository.GetByRoomId(roomId, deviceCursorId, next, limit);
         }
@@ -65,7 +65,7 @@ namespace SystemBackend.Services
             return _roomRepository.GetRoomMember(roomId, civilianId);
         }
 
-        public List<Civilian> GetMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int limit = 20)
+        public List<Civilian> GetMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null)
         {
             return _roomRepository.GetRoomMembers(roomId, civilianCursorId, next, limit);
         }

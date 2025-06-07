@@ -22,39 +22,29 @@ namespace SystemBackend.Repositories
 
             return roomMember;
         }
-        public List<RoomMember> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int limit = 20)
+        public List<RoomMember> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var roomMembers = next ? _dbContext.RoomMembers
-                .Where(rm => rm.RoomId == roomId)
-                .Where(rm => cursorId == null || rm.Id > cursorId)
-                .OrderBy(rm => rm.Id)
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.RoomMembers
-                .Where(rm => rm.RoomId == roomId)
-                .Where(rm => cursorId == null || rm.Id < cursorId)
-                .OrderByDescending(rm => rm.Id)
-                .Take(limit)
-                .ToList();
+            var query = _dbContext.RoomMembers.AsQueryable();
+            query = query.Where(rm => rm.RoomId == roomId);
+            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId);
+            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId);
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var roomMembers = query.ToList();
 
             return roomMembers;
         }
-        public List<RoomMember> GetByMemberId(string memberId, Guid? cursorId = null, bool next = true, int limit = 20)
+        public List<RoomMember> GetByMemberId(string memberId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var roomMembers = next ? _dbContext.RoomMembers
-                .Where(rm => rm.MemberId == memberId)
-                .Where(rm => cursorId == null || rm.Id > cursorId)
-                .OrderBy(rm => rm.Id)
-                .Take(limit)
-                .ToList()
-                :
-                _dbContext.RoomMembers
-                .Where(rm => rm.MemberId == memberId)
-                .Where(rm => cursorId == null || rm.Id < cursorId)
-                .OrderByDescending(rm => rm.Id)
-                .Take(limit)
-                .ToList();
+            var query = _dbContext.RoomMembers.AsQueryable();
+            query = query.Where(rm => rm.MemberId == memberId);
+            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId);
+            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId);
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            var roomMembers = query.ToList();
 
             return roomMembers;
         }

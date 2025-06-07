@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using SystemBackend.Mappers;
 using SystemBackend.Models.DTO;
+using SystemBackend.Models.Entities;
 using SystemBackend.Services.Interfaces;
 
 namespace SystemBackend.Controllers
@@ -22,15 +23,25 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetAllRooms(Guid? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetAllRooms(Guid? cursorId = null, bool next = true, int? limit = null)
         {
-            var rooms = _roomService.GetRooms(cursorId, next, limit)
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
+            var rooms = _roomService.GetRooms(cursorId, next, limit + 1)
                 .Select(r => r.FromRoomToRoomDto())
                 .ToList();
 
+            var nextId = (rooms.Count == limit + 1) ?  rooms.Last().Id : (Guid?)null;
+            if(rooms.Count == limit + 1) rooms.Remove(rooms.Last());
             return Ok(new
             {
-                cursorId = rooms.Count == 0 ? (Guid?)null : rooms.Last().Id,
+                cursorId = nextId,
                 count = rooms.Count,
                 data = rooms
             });
@@ -110,8 +121,16 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/members")]
-        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int? limit = null)
         {
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
             var room = _roomService.GetRoomById(roomId);
             if(room == null)
             {
@@ -121,12 +140,15 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var members = _roomService.GetMembers(roomId, cursorId, next, limit)
+            var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1)
                 .Select(m => m.FromCivilianToCivilianDto())
                 .ToList();
+
+            var nextId = (members.Count == limit + 1) ? members.Last().Id : null;
+            if (members.Count == limit + 1) members.Remove(members.Last());
             return Ok(new
             {
-                cursorId = members.Count == 0 ? null : members.Last().Id,
+                cursorId = nextId,
                 count = members.Count,
                 data = members
             });
@@ -220,8 +242,16 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/devices")]
-        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int limit = 20)
+        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
         {
+            if (limit < 0)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "limit should be a non-negative integer." }
+                });
+            }
+
             var room = _roomService.GetRoomById(roomId);
             if (room == null)
             {
@@ -231,12 +261,15 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var devices = _roomService.GetDevices(roomId, cursorId, next, limit)
+            var devices = _roomService.GetDevices(roomId, cursorId, next, limit + 1)
                 .Select(d => d.FromDeviceToDeviceDto())
                 .ToList();
+
+            var nextId = (devices.Count == limit + 1) ? devices.Last().Id : (Guid?)null;
+            if (devices.Count == limit + 1) devices.Remove(devices.Last());
             return Ok(new
             {
-                cursorId = devices.Count == 0 ? (Guid?)null : devices.Last().Id,
+                cursorId = nextId,
                 count = devices.Count,
                 data = devices
             });
