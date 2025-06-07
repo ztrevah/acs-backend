@@ -39,10 +39,10 @@ namespace SystemBackend.Repositories
         {
             var query = _dbContext.Devices.AsQueryable();
 
-            if (next) query = query.OrderBy(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0));
-            else query = query.OrderByDescending(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0));
+            if (next) query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0))
+                .OrderBy(d => d.Id);
+            else query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0))
+                .OrderBy(d => d.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -55,10 +55,10 @@ namespace SystemBackend.Repositories
             var query = _dbContext.Devices.AsQueryable();
             query = query.Where(d => d.RoomId == roomId);
 
-            if (next) query = query.OrderBy(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0));
-            else query = query.OrderByDescending(d => d.Id)
-                .Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0));
+            if (next) query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0))
+                    .OrderBy(d => d.Id);
+            else query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0))
+                    .OrderByDescending(d => d.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 

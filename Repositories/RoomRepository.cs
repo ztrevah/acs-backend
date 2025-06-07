@@ -43,7 +43,7 @@ namespace SystemBackend.Repositories
             var query = _dbContext.Rooms.AsQueryable();
 
             if (next) query = query.Where(r => (cursorId == null || r.Id >= cursorId))
-                    .Distinct().OrderBy(r => r.Id);
+                    .OrderBy(r => r.Id);
             else query = query.Where(r => (cursorId == null || r.Id <= cursorId))
                     .OrderByDescending(r => r.Id);
 

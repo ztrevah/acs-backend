@@ -30,9 +30,6 @@ namespace SystemBackend.Repositories
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
 
-            if (next) query = query.OrderBy(l => l.CreatedAt);
-            else query = query.OrderByDescending(l => l.CreatedAt);
-
             if(cursorId != null)
             {
                 var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
@@ -45,6 +42,9 @@ namespace SystemBackend.Repositories
                 }
 
             }
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -60,10 +60,7 @@ namespace SystemBackend.Repositories
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
-
-            if (next) query = query.OrderBy(l => l.CreatedAt);
-            else query = query.OrderByDescending(l => l.CreatedAt);
-
+            
             if (cursorId != null)
             {
                 var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
@@ -76,6 +73,9 @@ namespace SystemBackend.Repositories
                 }
 
             }
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -93,9 +93,6 @@ namespace SystemBackend.Repositories
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
 
-            if (next) query = query.OrderBy(l => l.CreatedAt);
-            else query = query.OrderByDescending(l => l.CreatedAt);
-
             if (cursorId != null)
             {
                 var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
@@ -108,6 +105,9 @@ namespace SystemBackend.Repositories
                 }
 
             }
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -124,9 +124,6 @@ namespace SystemBackend.Repositories
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
 
-            if (next) query = query.OrderBy(l => l.CreatedAt);
-            else query = query.OrderByDescending(l => l.CreatedAt);
-
             if (cursorId != null)
             {
                 var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
@@ -139,6 +136,9 @@ namespace SystemBackend.Repositories
                 }
 
             }
+
+            if (next) query = query.OrderBy(l => l.CreatedAt);
+            else query = query.OrderByDescending(l => l.CreatedAt);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 

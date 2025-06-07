@@ -66,10 +66,10 @@ namespace SystemBackend.Repositories
             query = query.Where(rm => rm.MemberId == civilianId)
                 .Include(rm => rm.Room);
 
-            if (next) query = query.OrderBy(rm => rm.RoomId)
-                .Where(r => (roomCursorId == null || r.RoomId >= roomCursorId));
-            else query = query.OrderByDescending(rm => rm.RoomId)
-                .Where(r => (roomCursorId == null || r.RoomId <= roomCursorId));
+            if (next) query = query.Where(r => (roomCursorId == null || r.RoomId >= roomCursorId))
+                .OrderBy(rm => rm.RoomId);
+            else query = query.Where(r => (roomCursorId == null || r.RoomId <= roomCursorId))
+                .OrderByDescending(rm => rm.RoomId);
 
             if (limit != null && limit >= 0) query = query.Take((int) limit);
 

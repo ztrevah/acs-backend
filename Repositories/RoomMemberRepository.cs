@@ -26,8 +26,10 @@ namespace SystemBackend.Repositories
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.RoomId == roomId);
-            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId);
-            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId);
+            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
+                    .OrderBy(rm => rm.Id);
+            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId)
+                    .OrderByDescending(rm => rm.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -39,8 +41,10 @@ namespace SystemBackend.Repositories
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.MemberId == memberId);
-            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId);
-            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId);
+            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
+                    .OrderBy(rm => rm.Id);
+            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId)
+                    .OrderByDescending(rm => rm.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
