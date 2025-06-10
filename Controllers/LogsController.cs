@@ -170,12 +170,20 @@ namespace SystemBackend.Controllers
                 });
             }
 
+            if (device.RoomId == null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Device has not been added to a room." }
+                });
+            }
+
             var roomMember = _deviceService.GetMember(addLogDto.DeviceId, addLogDto.CivilianId);
             if (roomMember == null)
             {
-                return NotFound(new 
+                return StatusCode(403, new 
                 {
-                    error = new { message = "Room member not found." }
+                    error = new { message = "This civilian is not a member of this room." }
                 });
             }
 

@@ -46,6 +46,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{deviceId}")]
+        [AllowAnonymous]
         public IActionResult GetDeviceDetail([FromRoute] Guid deviceId)
         {
             var device = _deviceService.GetDeviceById(deviceId);
@@ -135,14 +136,21 @@ namespace SystemBackend.Controllers
             {
                 return NotFound(new
                 {
-                    error = new { message = "Device not found." }
+                    error = new { message = "Device has not been added to the system yet." }
+                });
+            }
+            if(device.RoomId == null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Device has not been added to a room." }
                 });
             }
 
             var civilian = _deviceService.GetMember(deviceId, civilianId);
             if (civilian == null)
             {
-                return NotFound(new
+                return StatusCode(403, new
                 {
                     error = new { message = "Member not found." }
                 });
