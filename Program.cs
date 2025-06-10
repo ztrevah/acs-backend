@@ -79,6 +79,7 @@ builder.Services.AddScoped<IDeviceService, DeviceService>();
 builder.Services.AddScoped<IRoomService, RoomService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ILogService, LogService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 var app = builder.Build();
 
