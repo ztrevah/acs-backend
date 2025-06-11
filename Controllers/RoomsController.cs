@@ -290,7 +290,7 @@ namespace SystemBackend.Controllers
             {
                 return NotFound(new
                 {
-                    error = new { message = "Room not found." }
+                    error = new { message = "Device not found." }
                 });
             }
 

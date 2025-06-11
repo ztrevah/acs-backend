@@ -41,10 +41,10 @@ namespace SystemBackend.Repositories
 
             if (keyword != null) query = query.Where(d => d.Id.ToString().StartsWith(keyword));
 
-            if (next) query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0))
+            if (next) query = query.Where(d => (cursorId == null || d.Id >= cursorId))
                 .OrderBy(d => d.Id);
-            else query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0))
-                .OrderBy(d => d.Id);
+            else query = query.Where(d => (cursorId == null || d.Id <= cursorId))
+                .OrderByDescending(d => d.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);
 
@@ -59,9 +59,9 @@ namespace SystemBackend.Repositories
 
             if (keyword != null) query = query.Where(d => d.Id.ToString().StartsWith(keyword));
 
-            if (next) query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) >= 0))
+            if (next) query = query.Where(d => (cursorId == null || d.Id >= cursorId))
                     .OrderBy(d => d.Id);
-            else query = query.Where(d => (cursorId == null || d.Id.CompareTo(cursorId) <= 0))
+            else query = query.Where(d => (cursorId == null || d.Id <= cursorId))
                     .OrderByDescending(d => d.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int)limit);

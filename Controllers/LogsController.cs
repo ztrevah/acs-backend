@@ -39,7 +39,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            return Ok(log.FromLogToLogDetailDto());
+            return Ok(log.FromLogToLogDto());
         }
 
         [HttpGet("")]
