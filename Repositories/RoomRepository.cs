@@ -38,9 +38,11 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return room;
         }
-        public List<Room> Get(Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<Room> Get(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.Rooms.AsQueryable();
+            
+            if (keyword != null) query = query.Where(r => r.Id.ToString().StartsWith(keyword) || r.Name.Contains(keyword));
 
             if (next) query = query.Where(r => (cursorId == null || r.Id >= cursorId))
                     .OrderBy(r => r.Id);
@@ -55,11 +57,13 @@ namespace SystemBackend.Repositories
 
         }
 
-        public List<Room> GetAccessibleRoomsByMember(string civilianId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<Room> GetAccessibleRoomsByMember(string civilianId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.MemberId == civilianId)
                 .Include(rm => rm.Room);
+
+            if (keyword != null) query = query.Where(rm => rm.RoomId.ToString().StartsWith(keyword) || rm.Room.Name.Contains(keyword));
 
             if (next) query = query.Where(r => (cursorId == null || r.RoomId >= cursorId))
                 .OrderBy(rm => rm.RoomId);
@@ -97,12 +101,14 @@ namespace SystemBackend.Repositories
             return _dbContext.RoomMembers.FirstOrDefault(rm => rm.RoomId == roomId && rm.MemberId == civilianId);
         }
 
-        public List<Civilian> GetRoomMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null)
+        public List<Civilian> GetRoomMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
 
             query = query.Where(rm => rm.RoomId == roomId)
                 .Include(rm => rm.Member);
+
+            if(keyword != null) query = query.Where(rm => rm.MemberId.StartsWith(keyword) || rm.Member.Name.Contains(keyword));
 
             if (next) query = query.Where(rm => civilianCursorId == null || rm.MemberId.CompareTo(civilianCursorId) >= 0)
                 .OrderBy(rm => rm.MemberId);

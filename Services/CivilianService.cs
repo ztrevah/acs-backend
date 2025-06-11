@@ -23,29 +23,29 @@ namespace SystemBackend.Services
             return _civilianRepository.GetById(id);
         }
 
-        public List<Civilian> GetCivilians(string? cursorId = null, bool next = true, int? limit = null)
+        public List<Civilian> GetCivilians(string? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
-            return _civilianRepository.Get(cursorId, next, limit);
+            return _civilianRepository.Get(cursorId, next, limit, keyword);
         }
 
-        public List<RoomMember> GetRoomMembers(string civilianId, Guid? roomMemberCursorId = null, bool next = true, int? limit = null)
+        public List<RoomMember> GetRoomMembers(string civilianId, Guid? roomMemberCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if(_civilianRepository.GetById(civilianId) == null)
             {
                 return [];
             }
 
-            return _roomMemberRepository.GetByMemberId(civilianId, roomMemberCursorId, next, limit);
+            return _roomMemberRepository.GetByMemberId(civilianId, roomMemberCursorId, next, limit, keyword);
         }
 
-        public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null)
+        public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (_civilianRepository.GetById(civilianId) == null)
             {
                 return [];
             }
 
-            return _civilianRepository.GetAccessibleRooms(civilianId, roomCursorId, next, limit);
+            return _civilianRepository.GetAccessibleRooms(civilianId, roomCursorId, next, limit, keyword);
         }
         public Civilian? AddCivilian(AddCivilianDto addCivilianDto)
         {

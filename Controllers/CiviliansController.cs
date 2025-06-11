@@ -19,7 +19,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetAllCivilians(string? cursorId = null, bool next = true, int? limit = null)
+        public IActionResult GetAllCivilians(string? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -29,7 +29,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var civilians = _civilianService.GetCivilians(cursorId, next, limit + 1)
+            var civilians = _civilianService.GetCivilians(cursorId, next, limit + 1, keyword)
                 .Select(c => c.FromCivilianToCivilianDto())
                 .ToList();
 
@@ -130,7 +130,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{civilianId}/rooms")]
-        public IActionResult GetAccessibleRooms([FromRoute] string civilianId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public IActionResult GetAccessibleRooms([FromRoute] string civilianId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -149,7 +149,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var accessibleRooms = _civilianService.GetAccessibleRooms(civilianId, cursorId, next, limit + 1)
+            var accessibleRooms = _civilianService.GetAccessibleRooms(civilianId, cursorId, next, limit + 1, keyword)
                 .Select(r => r.FromRoomToRoomDto())
                 .ToList();
 

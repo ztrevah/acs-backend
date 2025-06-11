@@ -42,18 +42,18 @@ namespace SystemBackend.Services
             return _deviceRepository.GetById(id);
         }
 
-        public List<Device> GetDevices(Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<Device> GetDevices(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
-            return _deviceRepository.Get(cursorId, next, limit);
+            return _deviceRepository.Get(cursorId, next, limit, keyword);
         }
-        public List<Device> GetDevicesByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<Device> GetDevicesByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if(_roomRepository.GetById(roomId) == null)
             {
                 return [];
             }
 
-            return _deviceRepository.GetByRoomId(roomId, cursorId, next, limit);
+            return _deviceRepository.GetByRoomId(roomId, cursorId, next, limit, keyword);
         }
 
         public Device? AddDevice(AddDeviceDto addDeviceDto)

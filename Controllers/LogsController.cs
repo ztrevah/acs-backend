@@ -43,7 +43,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if(limit < 0)
             {
@@ -65,7 +65,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("civilian/{civilianId}")]
-        public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -96,7 +96,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("room/{roomId}")]
-        public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -127,7 +127,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("device/{deviceId}")]
-        public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20)
+        public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {

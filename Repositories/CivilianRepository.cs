@@ -43,15 +43,17 @@ namespace SystemBackend.Repositories
             return existingCivilian;
         }
 
-        public List<Civilian> Get(string? cursorId = null, bool next = true, int? limit = null)
+        public List<Civilian> Get(string? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.Civilians.AsQueryable();
 
-            if (next) query = query.OrderBy(c => c.Id)
-                .Where(c => cursorId == null || c.Id.CompareTo(cursorId) >= 0);
+            if(keyword != null) query = query.Where(c => c.Id.StartsWith(keyword) || c.Name.Contains(keyword));
 
-            else query = query.OrderByDescending(c => c.Id)
-                .Where(c => cursorId == null || c.Id.CompareTo(cursorId) <= 0);
+            if (next) query = query.Where(c => cursorId == null || c.Id.CompareTo(cursorId) >= 0)
+                .OrderBy(c => c.Id);
+
+            else query = query.Where(c => cursorId == null || c.Id.CompareTo(cursorId) <= 0)
+                .OrderByDescending(c => c.Id);
 
             if (limit != null && limit >= 0) query = query.Take((int) limit);
 
@@ -60,11 +62,13 @@ namespace SystemBackend.Repositories
             return civilians;
         }
 
-        public List<Room> GetAccessibleRooms(string civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null)
+        public List<Room> GetAccessibleRooms(string civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.MemberId == civilianId)
                 .Include(rm => rm.Room);
+
+            if (keyword != null) query = query.Where(rm => rm.RoomId.ToString().StartsWith(keyword) || rm.Room.Name.Contains(keyword));
 
             if (next) query = query.Where(r => (roomCursorId == null || r.RoomId >= roomCursorId))
                 .OrderBy(rm => rm.RoomId);

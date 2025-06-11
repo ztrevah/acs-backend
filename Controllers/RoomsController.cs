@@ -23,7 +23,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetAllRooms(Guid? cursorId = null, bool next = true, int? limit = null)
+        public IActionResult GetAllRooms(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -33,7 +33,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var rooms = _roomService.GetRooms(cursorId, next, limit + 1)
+            var rooms = _roomService.GetRooms(cursorId, next, limit + 1, keyword)
                 .Select(r => r.FromRoomToRoomDto())
                 .ToList();
 
@@ -121,7 +121,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/members")]
-        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int? limit = null)
+        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -140,7 +140,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1)
+            var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1, keyword)
                 .Select(m => m.FromCivilianToCivilianDto())
                 .ToList();
 
@@ -242,7 +242,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/devices")]
-        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -261,7 +261,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var devices = _roomService.GetDevices(roomId, cursorId, next, limit + 1)
+            var devices = _roomService.GetDevices(roomId, cursorId, next, limit + 1, keyword)
                 .Select(d => d.FromDeviceToDeviceDto())
                 .ToList();
 

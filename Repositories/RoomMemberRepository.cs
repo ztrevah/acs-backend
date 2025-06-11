@@ -22,10 +22,11 @@ namespace SystemBackend.Repositories
 
             return roomMember;
         }
-        public List<RoomMember> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<RoomMember> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.RoomId == roomId);
+
             if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
                     .OrderBy(rm => rm.Id);
             else query = query.Where(rm => cursorId == null || rm.Id <= cursorId)
@@ -37,10 +38,11 @@ namespace SystemBackend.Repositories
 
             return roomMembers;
         }
-        public List<RoomMember> GetByMemberId(string memberId, Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<RoomMember> GetByMemberId(string memberId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.MemberId == memberId);
+
             if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
                     .OrderBy(rm => rm.Id);
             else query = query.Where(rm => cursorId == null || rm.Id <= cursorId)

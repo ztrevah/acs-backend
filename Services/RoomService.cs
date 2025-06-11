@@ -20,9 +20,9 @@ namespace SystemBackend.Services
             return _roomRepository.GetById(id);
         }
 
-        public List<Room> GetRooms(Guid? cursorId = null, bool next = true, int? limit = null)
+        public List<Room> GetRooms(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
-            return _roomRepository.Get(cursorId, next, limit);
+            return _roomRepository.Get(cursorId, next, limit, keyword);
         }
         public Room CreateRoom(AddRoomDto addRoomDto)
         {
@@ -42,9 +42,9 @@ namespace SystemBackend.Services
             return _roomRepository.Update(id, room);
         }
 
-        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null)
+        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
-            return _deviceRepository.GetByRoomId(roomId, deviceCursorId, next, limit);
+            return _deviceRepository.GetByRoomId(roomId, deviceCursorId, next, limit, keyword);
         }
         public Device? AddDevice(Guid roomId, Guid deviceId)
         {
@@ -65,9 +65,9 @@ namespace SystemBackend.Services
             return _roomRepository.GetRoomMember(roomId, civilianId);
         }
 
-        public List<Civilian> GetMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null)
+        public List<Civilian> GetMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
-            return _roomRepository.GetRoomMembers(roomId, civilianCursorId, next, limit);
+            return _roomRepository.GetRoomMembers(roomId, civilianCursorId, next, limit, keyword);
         }
         public RoomMember? AddRoomMember(Guid roomId, string civilianId)
         {
