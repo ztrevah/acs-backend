@@ -27,5 +27,10 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return user;
         }
+
+        public User? GetByEmail(string email)
+        {
+            return _dbContext.Users.FirstOrDefault(a => a.Email == email);
+        }
     }
 }

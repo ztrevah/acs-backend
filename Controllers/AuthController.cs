@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 using SystemBackend.Data;
+using SystemBackend.Mappers;
 using SystemBackend.Models.DTO;
 using SystemBackend.Models.Entities;
 using SystemBackend.Services.Interfaces;
@@ -12,18 +14,21 @@ namespace SystemBackend.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
-        public AuthController(IAuthService authService, IConfiguration configuration)
+        public AuthController(IAuthService authService, IEmailService emailService, IConfiguration configuration)
         {
             _authService = authService;
+            _emailService = emailService;
             _configuration = configuration;
         }
 
         [HttpPost("signup")]
         public IActionResult SignUp([FromBody] CreateUserDto createUserDto)
         {
-            if(_authService.CheckExistingUsername(createUserDto.Username))
+            if(_authService.GetUserByUsername(createUserDto.Username) != null 
+                || _authService.GetPendingUserByUsername(createUserDto.Username) != null)
             {
                 return BadRequest(new
                 {
@@ -31,9 +36,36 @@ namespace SystemBackend.Controllers
                 });
             }
 
+            if (_authService.GetUserByEmail(createUserDto.Email) != null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "This email has already existed!" }
+                });
+            }
+
+            if(createUserDto.Password.Length < 8)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "The password must contain more than 8 characters!" }
+                });
+            }
+
+            string emailRegexPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+
+            Regex regex = new Regex(emailRegexPattern);
+            if (!regex.IsMatch(createUserDto.Email))
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "The email is invalid!" }
+                });
+            }
+
             try
             {
-                var newUser = _authService.CreateUser(createUserDto);
+                var newUser = _authService.CreatePendingUser(createUserDto);
                 if(newUser == null)
                 {
                     return StatusCode(500, new
@@ -41,12 +73,21 @@ namespace SystemBackend.Controllers
                         error = new { message = "Internal server error." }
                     });
                 }
-                
-                return StatusCode(201, new SuccessfulCreateUserDto
+
+
+                try
                 {
-                    Id = newUser.Id,
-                    Username = newUser.Username,
-                });
+                    _emailService.SendReceiveCreateAccountRequest(newUser);
+                    return StatusCode(200, newUser.FromPendingUserToPendingUserDto());
+                }
+                catch (Exception ex)
+                {
+                    _authService.RemovePendingUser(newUser);
+                    return StatusCode(500, new
+                    {
+                        error = new { message = "Error sending email." }
+                    });
+                }
             }
             catch (Exception)
             {
@@ -61,6 +102,14 @@ namespace SystemBackend.Controllers
         [HttpPost("signin")]
         public IActionResult SignIn([FromBody] SignInUserDto signInUserDto)
         {
+            if(_authService.GetPendingUserByUsername(signInUserDto.Username) != null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "This user is pending for verification." }
+                });
+            }
+
             var signInUser = _authService.GetUserByUsername(signInUserDto.Username);
             if(signInUser == null)
             {
@@ -102,6 +151,8 @@ namespace SystemBackend.Controllers
                 {
                     Id = signInUser.Id,
                     Username = signInUser.Username,
+                    Email = signInUser.Email,
+                    Role = signInUser.Role.ToString(),
                     AccessToken = _authService.GenerateAccessToken(signInUser)
                 });
             }

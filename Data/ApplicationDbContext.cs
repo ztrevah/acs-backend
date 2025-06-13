@@ -8,6 +8,7 @@ namespace SystemBackend.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<User> Users { get; set; }
+        public DbSet<PendingUser> PendingUsers { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<Room> Rooms { get; set; }
         public DbSet<Device> Devices { get; set; }
@@ -22,7 +23,26 @@ namespace SystemBackend.Data
 
                 entity.Property(a => a.Username).IsRequired();
                 entity.Property(a => a.Password).IsRequired();
+                entity.Property(a => a.Role).IsRequired()
+                    .HasDefaultValue(UserRoleType.Admin)
+                    .HasConversion<string>();
+                entity.Property(a => a.Email).IsRequired();
 
+                entity.HasIndex(a => a.Email).IsUnique();
+                entity.HasIndex(a => a.Username).IsUnique();
+            });
+
+            modelBuilder.Entity<PendingUser>(entity => {
+                entity.HasKey(a => a.Id);
+
+                entity.Property(a => a.Username).IsRequired();
+                entity.Property(a => a.Password).IsRequired();
+                entity.Property(a => a.Role).IsRequired()
+                    .HasDefaultValue(UserRoleType.Admin)
+                    .HasConversion<string>();
+                entity.Property(a => a.Email).IsRequired();
+
+                entity.HasIndex(a => a.Email);
                 entity.HasIndex(a => a.Username).IsUnique();
             });
 

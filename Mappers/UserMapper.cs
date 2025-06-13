@@ -5,12 +5,14 @@ namespace SystemBackend.Mappers
 {
     public static class UserMapper
     {
-        public static User FromCreateUserDtoToAdmin(this CreateUserDto createUserDto)
+        public static PendingUserDto FromPendingUserToPendingUserDto (this PendingUser pendingUser)
         {
-            return new User
+            return new PendingUserDto
             {
-                Username = createUserDto.Username,
-                Password = createUserDto.Password,
+                Id = pendingUser.Id,
+                Username = pendingUser.Username,
+                Email = pendingUser.Email,
+                Role = pendingUser.Role.ToString(),
             };
         }
     }
