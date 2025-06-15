@@ -129,6 +129,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{deviceId}/members/{civilianId}")]
+        [AllowAnonymous]
         public IActionResult GetMember([FromRoute] Guid deviceId, [FromRoute] string civilianId)
         {
             var device = _deviceService.GetDeviceById(deviceId);
