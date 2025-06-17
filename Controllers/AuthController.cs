@@ -174,7 +174,14 @@ namespace SystemBackend.Controllers
             if (string.IsNullOrEmpty(refreshTokenString))
             {
                 if(refreshTokenString != null) _authService.RemoveRefreshToken(refreshTokenString);
-                Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/" });
+                Response.Cookies.Delete("refreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    IsEssential = true,
+                    Path = "/"
+                });
                 return Unauthorized(new
                 {
                     error = new { message = "Refresh token not found." }
@@ -185,7 +192,14 @@ namespace SystemBackend.Controllers
             if(refreshToken == null)
             {
                 _authService.RemoveRefreshToken(refreshTokenString);
-                Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/" });
+                Response.Cookies.Delete("refreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    IsEssential = true,
+                    Path = "/"
+                });
                 return Unauthorized(new
                 {
                     error = new { message = "Invalid refresh token." }
@@ -196,7 +210,14 @@ namespace SystemBackend.Controllers
             if (user == null)
             {
                 _authService.RemoveRefreshToken(refreshTokenString);
-                Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/" });
+                Response.Cookies.Delete("refreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    IsEssential = true,
+                    Path = "/"
+                });
                 return Unauthorized(new
                 {
                     error = new { message = "Invalid refresh token." }
@@ -224,14 +245,28 @@ namespace SystemBackend.Controllers
 
             if (string.IsNullOrEmpty(refreshTokenString))
             {
-                Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/" });
+                Response.Cookies.Delete("refreshToken", new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.None,
+                    IsEssential = true,
+                    Path = "/"
+                });
                 return Unauthorized(new {
                     error = new { message = "Refresh token not found." }
                 });
             }
 
             _authService.RemoveRefreshToken(refreshTokenString);
-            Response.Cookies.Delete("refreshToken", new CookieOptions { Path = "/" });
+            Response.Cookies.Delete("refreshToken", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.None,
+                IsEssential = true,
+                Path = "/"
+            });
             return Ok();
         }
     }
