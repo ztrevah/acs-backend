@@ -94,6 +94,13 @@ namespace SystemBackend.Data
             {
                 entity.HasKey(rm => rm.Id);
 
+                entity.Property(rm => rm.RoomId).IsRequired();
+                entity.Property(rm => rm.MemberId).IsRequired();
+                entity.Property(rm => rm.StartTime).IsRequired()
+                        .HasDefaultValue(DateTime.MinValue);
+                entity.Property(rm => rm.EndTime).IsRequired()
+                        .HasDefaultValue(DateTime.MaxValue);
+
                 entity.HasOne(rm => rm.Room)
                     .WithMany(r => r.Members)
                     .HasForeignKey(rm => rm.RoomId);
@@ -101,6 +108,19 @@ namespace SystemBackend.Data
                 entity.HasOne(rm => rm.Member)
                     .WithMany(m => m.RoomMembers)
                     .HasForeignKey(rm => rm.MemberId);
+
+                entity.ToTable(t =>
+                {
+                    t.HasCheckConstraint("CHK_RoomMember_MainPeriodValid", "StartTime < EndTime");
+
+                    t.HasCheckConstraint("CHK_RoomMember_DisabledPeriodValid",
+                        "(DisabledStartTime IS NULL AND DisabledEndTime IS NULL) OR " +
+                        "(DisabledStartTime IS NOT NULL AND DisabledEndTime IS NOT NULL AND DisabledStartTime < DisabledEndTime)");
+
+                    t.HasCheckConstraint("CHK_RoomMember_DisabledPeriodWithinMain",
+                        "(DisabledStartTime IS NULL AND DisabledEndTime IS NULL) OR " +
+                        "(DisabledStartTime IS NOT NULL AND DisabledEndTime IS NOT NULL AND DisabledStartTime >= StartTime AND DisabledEndTime <= EndTime)");
+                });
 
                 entity.HasIndex(rm => new { rm.MemberId, rm.RoomId }).IsUnique();
                 entity.HasIndex(rm => rm.MemberId);

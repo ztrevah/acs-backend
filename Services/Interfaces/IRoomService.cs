@@ -11,9 +11,10 @@ namespace SystemBackend.Services.Interfaces
         public Room? UpdateRoom(Guid id, UpdateRoomDto updateRoomDto);
         public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null, string? keyword = null);
         public Device? AddDevice(Guid roomId, Guid deviceId);
-        public List<Civilian> GetMembers(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null, string? keyword = null);
+        public List<RoomMember> GetMembers(Guid roomId, Guid? roomMemberId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false);
         public RoomMember? GetMember(Guid roomId, string civilianId);
-        public RoomMember? AddRoomMember(Guid roomId, string civilianId);
+        public RoomMember? AddRoomMember(Guid roomId, AddRoomMemberDto addRoomMemberDto);
+        public RoomMember? UpdateRoomMember(Guid roomId, string civilianId, UpdateRoomMemberDto updatedRoomMember);
         public RoomMember? RemoveMember(Guid roomId, string civilianId);
     }
 }

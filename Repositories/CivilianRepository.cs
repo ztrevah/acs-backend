@@ -66,6 +66,8 @@ namespace SystemBackend.Repositories
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.MemberId == civilianId)
+                .Where(rm => rm.StartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.EndTime
+                    && (rm.DisabledStartTime == null || !(rm.DisabledStartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.DisabledEndTime)))
                 .Include(rm => rm.Room);
 
             if (keyword != null) query = query.Where(rm => rm.RoomId.ToString().StartsWith(keyword) || rm.Room.Name.Contains(keyword));

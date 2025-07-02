@@ -121,7 +121,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/members")]
-        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public IActionResult GetRoomMembers([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
         {
             if (limit < 0)
             {
@@ -140,11 +140,11 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1, keyword)
-                .Select(m => m.FromCivilianToCivilianDto())
+            var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1, keyword, onlyAllowed)
+                .Select(m => m.FromRoomMemberToDetailResponselDto())
                 .ToList();
 
-            var nextId = (members.Count == limit + 1) ? members.Last().Id : null;
+            var nextId = (members.Count == limit + 1) ? (Guid?) members.Last().Id : null;
             if (members.Count == limit + 1) members.Remove(members.Last());
             return Ok(new
             {
@@ -155,7 +155,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpPost("{roomId}/members")]
-        public IActionResult AddNewMemberToRoom([FromRoute] Guid roomId, [FromBody] AddCivilianToRoomDto addCivilianToRoomDto)
+        public IActionResult AddNewMemberToRoom([FromRoute] Guid roomId, [FromBody] AddRoomMemberDto addRoomMemberDto)
         {
             var room = _roomService.GetRoomById(roomId);
             if (room == null)
@@ -166,7 +166,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var civilian = _civilianService.GetCivilianById(addCivilianToRoomDto.civilianId);
+            var civilian = _civilianService.GetCivilianById(addRoomMemberDto.MemberId);
             if (civilian == null)
             {
                 return NotFound(new
@@ -175,9 +175,35 @@ namespace SystemBackend.Controllers
                 });
             }
 
+            if(_roomService.GetMember(roomId, addRoomMemberDto.MemberId) != null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "This member has already been included in the room." }
+                });
+            }
+
+            if((addRoomMemberDto.DisabledEndTime == null && addRoomMemberDto.DisabledStartTime != null) 
+                || (addRoomMemberDto.DisabledEndTime != null && addRoomMemberDto.DisabledStartTime == null))
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Start time and end time of disabled period must be both null or both not null." }
+                });
+            }
+
+            if(addRoomMemberDto.StartTime >= addRoomMemberDto.EndTime || addRoomMemberDto.DisabledStartTime >= addRoomMemberDto.DisabledEndTime
+                || addRoomMemberDto.DisabledStartTime < addRoomMemberDto.StartTime || addRoomMemberDto.DisabledEndTime > addRoomMemberDto.EndTime)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Invalid access period." }
+                });
+            }
+
             try
             {
-                var newRoomMember = _roomService.AddRoomMember(roomId, addCivilianToRoomDto.civilianId);
+                var newRoomMember = _roomService.AddRoomMember(roomId, addRoomMemberDto);
                 if(newRoomMember == null)
                 {
                     return StatusCode(500, new
@@ -189,7 +215,91 @@ namespace SystemBackend.Controllers
                 var locationUri = $"{Request.Host}/{Request.Path}/{civilian.Id}";
                 return Created(locationUri, newRoomMember.FromRoomMemberToRoomMemberDto());
             }
-            catch(Exception)
+            catch(Exception e)
+            {
+                return StatusCode(500, new
+                {
+                    error = new { message = "Internal server error." }
+                });
+            }
+        }
+
+        [HttpGet("{roomId}/members/{civilianId}")]
+        public IActionResult GetRoomMember([FromRoute] Guid roomId, [FromRoute] string civilianId)
+        {
+            var room = _roomService.GetRoomById(roomId);
+            if (room == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Room not found." }
+                });
+            }
+
+            var civilian = _civilianService.GetCivilianById(civilianId);
+            if (civilian == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Civilian not found." }
+                });
+            }
+
+            var rm = _roomService.GetMember(roomId, civilianId);
+            if (rm == null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "This member has already been included in the room." }
+                });
+            }
+
+            return Ok(rm.FromRoomMemberToDetailResponselDto());
+        }
+
+        [HttpPut("{roomId}/members/{civilianId}")]
+        public IActionResult UpdateRoomMember([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromBody] UpdateRoomMemberDto updateRoomMemberDto)
+        {
+            if (_roomService.GetMember(roomId, civilianId) == null)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "This member has already been included in the room." }
+                });
+            }
+
+            if ((updateRoomMemberDto.DisabledEndTime == null && updateRoomMemberDto.DisabledStartTime != null)
+                || (updateRoomMemberDto.DisabledEndTime != null && updateRoomMemberDto.DisabledStartTime == null))
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Start time and end time of disabled period must be both null or both not null." }
+                });
+            }
+
+            if (updateRoomMemberDto.StartTime > updateRoomMemberDto.EndTime || updateRoomMemberDto.DisabledStartTime > updateRoomMemberDto.DisabledEndTime
+                || updateRoomMemberDto.DisabledStartTime < updateRoomMemberDto.StartTime || updateRoomMemberDto.DisabledEndTime > updateRoomMemberDto.EndTime)
+            {
+                return BadRequest(new
+                {
+                    error = new { message = "Invalid access time." }
+                });
+            }
+
+            try
+            {
+                var newRoomMember = _roomService.UpdateRoomMember(roomId, civilianId, updateRoomMemberDto);
+                if (newRoomMember == null)
+                {
+                    return StatusCode(500, new
+                    {
+                        error = new { message = "Internal server error." }
+                    });
+                }
+
+                return Ok(newRoomMember.FromRoomMemberToRoomMemberDto());
+            }
+            catch (Exception)
             {
                 return StatusCode(500, new
                 {
@@ -221,8 +331,8 @@ namespace SystemBackend.Controllers
 
             try
             {
-                var member = _roomService.RemoveMember(roomId, civilianId);
-                if (member == null)
+                var roomMember = _roomService.GetMember(roomId, civilianId);
+                if (roomMember == null)
                 {
                     return NotFound(new
                     {
@@ -230,7 +340,24 @@ namespace SystemBackend.Controllers
                     });
                 }
 
-                return Ok(member);
+                if (roomMember.EndTime <= DateTime.UtcNow)
+                {
+                    return BadRequest(new
+                    {
+                        error = new { message = "This member's access right has already expired." }
+                    });
+                }
+
+                var removedMember = _roomService.RemoveMember(roomId, civilianId);
+                if (removedMember == null)
+                {
+                    return StatusCode(500, new
+                    {
+                        error = new { message = "Internal server error." }
+                    });
+                }
+
+                return Ok(removedMember);
             }
             catch (Exception)
             {

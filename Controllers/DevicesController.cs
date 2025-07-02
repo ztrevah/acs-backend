@@ -130,7 +130,7 @@ namespace SystemBackend.Controllers
 
         [HttpGet("{deviceId}/members/{civilianId}")]
         [AllowAnonymous]
-        public IActionResult GetMember([FromRoute] Guid deviceId, [FromRoute] string civilianId)
+        public IActionResult CheckAccessRight([FromRoute] Guid deviceId, [FromRoute] string civilianId)
         {
             var device = _deviceService.GetDeviceById(deviceId);
             if (device == null)
@@ -148,16 +148,16 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var civilian = _deviceService.GetMember(deviceId, civilianId);
-            if (civilian == null)
+            var allowedRoomMember = _deviceService.CheckMemberAccessRight(deviceId, civilianId);
+            if (allowedRoomMember == null)
             {
                 return StatusCode(403, new
                 {
-                    error = new { message = "Member not found." }
+                    error = new { message = "This person is not allowed." }
                 });
             }
             
-            return Ok(civilian.FromCivilianToCivilianDto());
+            return Ok(allowedRoomMember.FromRoomMemberToDetailResponselDto());
         }
     }
 }

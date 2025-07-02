@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontendOrigin",
         policy =>
         {
-            policy.WithOrigins("https://acs-web-app.netlify.app") // Your frontend production URL
+            policy.WithOrigins("https://acs-web-app.netlify.app", "http://localhost:5173") // Your frontend production URL
                   .AllowAnyMethod()
                   .AllowAnyHeader()
                   .AllowCredentials();

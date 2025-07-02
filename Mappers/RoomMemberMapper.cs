@@ -12,7 +12,11 @@ namespace SystemBackend.Mappers
                 Id = roomMember.Id,
                 RoomId = roomMember.RoomId,
                 MemberId = roomMember.MemberId,
-                Member = roomMember.Member.FromCivilianToCivilianDto()
+                Member = roomMember.Member.FromCivilianToCivilianDto(),
+                StartTime = roomMember.StartTime,
+                EndTime = roomMember.EndTime,
+                DisabledStartTime = roomMember.DisabledStartTime,
+                DisabledEndTime = roomMember.DisabledEndTime,
             };
         }
 
@@ -23,6 +27,10 @@ namespace SystemBackend.Mappers
                 Id = roomMember.Id,
                 RoomId = roomMember.RoomId,
                 MemberId = roomMember.MemberId,
+                StartTime = roomMember.StartTime,
+                EndTime = roomMember.EndTime,
+                DisabledStartTime = roomMember.DisabledStartTime,
+                DisabledEndTime = roomMember.DisabledEndTime,
             };
         }
 
@@ -35,6 +43,10 @@ namespace SystemBackend.Mappers
                 MemberId = roomMember.MemberId,
                 Room = roomMember.Room.FromRoomToRoomDto(),
                 Member = roomMember.Member.FromCivilianToCivilianDto(),
+                StartTime = roomMember.StartTime,
+                EndTime = roomMember.EndTime,
+                DisabledStartTime = roomMember.DisabledStartTime,
+                DisabledEndTime = roomMember.DisabledEndTime,
             };
         }
     }

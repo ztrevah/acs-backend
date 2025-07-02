@@ -178,7 +178,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var roomMember = _deviceService.GetMember(addLogDto.DeviceId, addLogDto.CivilianId);
+            var roomMember = _deviceService.CheckMemberAccessRight(addLogDto.DeviceId, addLogDto.CivilianId);
             if (roomMember == null)
             {
                 return StatusCode(403, new 

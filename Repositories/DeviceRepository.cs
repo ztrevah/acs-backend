@@ -71,7 +71,7 @@ namespace SystemBackend.Repositories
             return devices;
         }
 
-        public Civilian? GetMember(Guid deviceId, string civilianId)
+        public RoomMember? CheckMemberAccessRight(Guid deviceId, string civilianId)
         {
             var device = _dbContext.Devices.FirstOrDefault(d => d.Id == deviceId);
             if (device == null) { return null; }
@@ -79,39 +79,47 @@ namespace SystemBackend.Repositories
             var member = _dbContext.RoomMembers
                 .Include(rm => rm.Member)
                 .FirstOrDefault(rm => rm.RoomId == device.RoomId && rm.MemberId == civilianId);
-            if (member == null) { return null; }
 
-            return member.Member;
+            if(member == null) { return null; }
+
+            if(member.StartTime <= DateTime.UtcNow && DateTime.UtcNow <= member.EndTime
+                && !(member.DisabledStartTime <= DateTime.UtcNow && DateTime.UtcNow <= member.DisabledEndTime))
+            {
+                return member;
+            }
+
+            return null;
         }
 
         public RoomMember? AddMember(Guid deviceId, String civilianId)
         {
-            var device = _dbContext.Devices.FirstOrDefault(d => d.Id == deviceId);
-            if (device == null) { return null; }
+            //var device = _dbContext.Devices.FirstOrDefault(d => d.Id == deviceId);
+            //if (device == null) { return null; }
 
-            if (device.RoomId == null) { return null; }
+            //if (device.RoomId == null) { return null; }
 
-            if(_dbContext.Rooms.FirstOrDefault(r => r.Id == device.RoomId) == null)
-            {
-                return null;
-            }
+            //if(_dbContext.Rooms.FirstOrDefault(r => r.Id == device.RoomId) == null)
+            //{
+            //    return null;
+            //}
 
-            if(_dbContext.Civilians.FirstOrDefault(c => c.Id == civilianId) == null) 
-            {
-                return null;
-            }
+            //if(_dbContext.Civilians.FirstOrDefault(c => c.Id == civilianId) == null) 
+            //{
+            //    return null;
+            //}
 
 
-            var roomMember = new RoomMember
-            {
-                RoomId = (Guid) device.RoomId,
-                MemberId = civilianId,
-            };
-            _dbContext.RoomMembers.Add(roomMember);
-            _dbContext.SaveChanges();
+            //var roomMember = new RoomMember
+            //{
+            //    RoomId = (Guid) device.RoomId,
+            //    MemberId = civilianId,
+            //};
+            //_dbContext.RoomMembers.Add(roomMember);
+            //_dbContext.SaveChanges();
 
-            return roomMember;
+            //return roomMember;
 
+            throw new NotImplementedException();
         }
     }
 }

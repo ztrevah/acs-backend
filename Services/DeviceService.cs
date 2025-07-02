@@ -32,9 +32,9 @@ namespace SystemBackend.Services
             return _deviceRepository.AddMember(deviceId, civilianId);
         }
 
-        public Civilian? GetMember(Guid deviceId, string memberId)
+        public RoomMember? CheckMemberAccessRight(Guid deviceId, string civilianId)
         {
-            return _deviceRepository.GetMember(deviceId, memberId);
+            return _deviceRepository.CheckMemberAccessRight(deviceId, civilianId);
         }
 
         public Device? GetDeviceById(Guid id)
