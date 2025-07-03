@@ -11,6 +11,7 @@ namespace SystemBackend.Mappers
             {
                 Id = device.Id,
                 RoomId = device.RoomId,
+                In = device.In,
             };
         }
     }

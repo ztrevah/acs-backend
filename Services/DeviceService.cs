@@ -76,6 +76,7 @@ namespace SystemBackend.Services
             {
                 Id = addDeviceDto.Id,
                 RoomId = addDeviceDto.RoomId,
+                In = addDeviceDto.In,
             };
 
             return _deviceRepository.Create(newDevice);
@@ -89,7 +90,8 @@ namespace SystemBackend.Services
                 return null;
             }
 
-            device.RoomId = updateDeviceDto.RoomId ?? device.RoomId;
+            device.RoomId = updateDeviceDto.RoomId;
+            device.In = updateDeviceDto.In;
             return _deviceRepository.Update(id, device);
         }
     }

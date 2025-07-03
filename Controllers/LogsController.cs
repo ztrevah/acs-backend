@@ -43,7 +43,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
+        public IActionResult GetLogs(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if(limit < 0)
             {
@@ -52,7 +52,7 @@ namespace SystemBackend.Controllers
                     error = new { message = "limit should be a non-negative integer." }
                 });
             }
-            var logs = _logService.GetLogs(cursorId, fromTime, toTime, next, limit + 1);
+            var logs = _logService.GetLogs(cursorId, fromTime, toTime, isIn, next, limit + 1);
 
             var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
             if (logs.Count == limit + 1) logs.Remove(logs.Last());
@@ -65,7 +65,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("civilian/{civilianId}")]
-        public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
+        public IActionResult GetLogsByCivilian([FromRoute] string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -83,7 +83,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByCivilian(civilianId, cursorId, fromTime, toTime, next, limit + 1);
+            var logs = _logService.GetLogsByCivilian(civilianId, cursorId, fromTime, toTime, isIn, next, limit + 1);
 
             var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
             if (logs.Count == limit + 1) logs.Remove(logs.Last());
@@ -96,7 +96,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("room/{roomId}")]
-        public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
+        public IActionResult GetLogsByRoom([FromRoute] Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -114,7 +114,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByRoom(roomId, cursorId, fromTime, toTime, next, limit + 1);
+            var logs = _logService.GetLogsByRoom(roomId, cursorId, fromTime, toTime, isIn, next, limit + 1);
 
             var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
             if (logs.Count == limit + 1) logs.Remove(logs.Last());
@@ -127,7 +127,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("device/{deviceId}")]
-        public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int limit = 20, string? keyword = null)
+        public IActionResult GetLogsByDevice([FromRoute] Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int limit = 20, string? keyword = null)
         {
             if (limit < 0)
             {
@@ -145,7 +145,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var logs = _logService.GetLogsByDevice(deviceId, cursorId, fromTime, toTime, next, limit + 1);
+            var logs = _logService.GetLogsByDevice(deviceId, cursorId, fromTime, toTime, isIn, next, limit + 1);
 
             var nextId = (logs.Count == limit + 1) ? logs.Last().Id : (Guid?)null;
             if (logs.Count == limit + 1) logs.Remove(logs.Last());

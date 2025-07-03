@@ -32,6 +32,7 @@ namespace SystemBackend.Repositories
             }
 
             existingDevice.RoomId = device.RoomId;
+            existingDevice.In = device.In;
             _dbContext.SaveChanges();
             return existingDevice;
         }

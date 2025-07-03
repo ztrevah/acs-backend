@@ -15,6 +15,7 @@ namespace SystemBackend.Mappers
                 DeviceId = log.DeviceId,
                 RoomId = log.RoomId,
                 CivilianId = log.CivilianId,
+                In = log.In,
             };
         }
 
@@ -30,7 +31,8 @@ namespace SystemBackend.Mappers
                 CivilianId = log.CivilianId,
                 Device = log.Device.FromDeviceToDeviceDto(),
                 Room = log.Room.FromRoomToRoomDto(),
-                Civilian = log.Civilian.FromCivilianToCivilianDto()
+                Civilian = log.Civilian.FromCivilianToCivilianDto(),
+                In = log.In,
             };
         }
     }

@@ -22,13 +22,18 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return log;
         }
-        public List<Log> Get(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
+        public List<Log> Get(Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int? limit = null)
         {
             var query = _dbContext.Logs.AsQueryable();
             query = query.Where(l => (fromTime == null && toTime == null)
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
+
+            if(isIn != null)
+            {
+                query = query.Where(l => l.In == isIn);
+            }
 
             if(cursorId != null)
             {
@@ -52,7 +57,7 @@ namespace SystemBackend.Repositories
 
             return logs;
         }
-        public List<Log> GetByDeviceId(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
+        public List<Log> GetByDeviceId(Guid deviceId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int? limit = null)
         {
             var query = _dbContext.Logs.AsQueryable();
             query = query.Where(l => l.DeviceId == deviceId)
@@ -60,7 +65,11 @@ namespace SystemBackend.Repositories
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
-            
+            if (isIn != null)
+            {
+                query = query.Where(l => l.In == isIn);
+            }
+
             if (cursorId != null)
             {
                 var cursorLog = _dbContext.Logs.FirstOrDefault(l => l.Id == cursorId);
@@ -84,7 +93,7 @@ namespace SystemBackend.Repositories
             return logs;
         }
         
-        public List<Log> GetByRoomId(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
+        public List<Log> GetByRoomId(Guid roomId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int? limit = null)
         {
             var query = _dbContext.Logs.AsQueryable();
             query = query.Where(l => l.RoomId == roomId)
@@ -92,6 +101,11 @@ namespace SystemBackend.Repositories
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
+
+            if (isIn != null)
+            {
+                query = query.Where(l => l.In == isIn);
+            }
 
             if (cursorId != null)
             {
@@ -115,7 +129,7 @@ namespace SystemBackend.Repositories
 
             return logs;
         }
-        public List<Log> GetByCivilianId(string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool next = false, int? limit = null)
+        public List<Log> GetByCivilianId(string civilianId, Guid? cursorId = null, DateTime? fromTime = null, DateTime? toTime = null, bool? isIn = null, bool next = false, int? limit = null)
         {
             var query = _dbContext.Logs.AsQueryable();
             query = query.Where(l => l.CivilianId == civilianId)
@@ -123,6 +137,11 @@ namespace SystemBackend.Repositories
                                 || (fromTime == null && l.CreatedAt <= toTime)
                                 || (toTime == null && l.CreatedAt >= fromTime)
                                 || (l.CreatedAt >= fromTime && l.CreatedAt <= toTime));
+
+            if (isIn != null)
+            {
+                query = query.Where(l => l.In == isIn);
+            }
 
             if (cursorId != null)
             {

@@ -15,5 +15,7 @@ namespace SystemBackend.Models.Entities
         public required String CivilianId { get; set; }
         public Civilian Civilian { get; set; }
 
+        public required bool In { get; set; }
+
     }
 }

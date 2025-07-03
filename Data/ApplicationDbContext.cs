@@ -74,6 +74,8 @@ namespace SystemBackend.Data
             {
                 entity.HasKey(d => d.Id);
 
+                entity.Property(l => l.In).IsRequired();
+
                 entity.HasOne(d => d.Room)
                     .WithMany(r => r.Devices)
                     .HasForeignKey(d => d.RoomId)
@@ -96,10 +98,8 @@ namespace SystemBackend.Data
 
                 entity.Property(rm => rm.RoomId).IsRequired();
                 entity.Property(rm => rm.MemberId).IsRequired();
-                entity.Property(rm => rm.StartTime).IsRequired()
-                        .HasDefaultValue(DateTime.MinValue);
-                entity.Property(rm => rm.EndTime).IsRequired()
-                        .HasDefaultValue(DateTime.MaxValue);
+                entity.Property(rm => rm.StartTime).IsRequired();
+                entity.Property(rm => rm.EndTime).IsRequired();
 
                 entity.HasOne(rm => rm.Room)
                     .WithMany(r => r.Members)
@@ -136,6 +136,7 @@ namespace SystemBackend.Data
                 entity.Property(l => l.RoomId).IsRequired();
                 entity.Property(l => l.CivilianId).IsRequired();
                 entity.Property(l => l.CreatedAt).IsRequired();
+                entity.Property(l => l.In).IsRequired();
 
                 entity.HasOne(l => l.Device)
                     .WithMany(d => d.Logs)
@@ -149,12 +150,14 @@ namespace SystemBackend.Data
                     .WithMany(c => c.Logs)
                     .HasForeignKey(l => l.CivilianId);
 
+
                 entity.HasIndex(l => l.CreatedAt).IsDescending(false);
                 entity.HasIndex(l => l.CreatedAt).IsDescending();
                 
                 entity.HasIndex(l => l.DeviceId);
                 entity.HasIndex(l => l.CivilianId);
                 entity.HasIndex(l => l.RoomId);
+                entity.HasIndex(l => l.In);
             });
         }
     }

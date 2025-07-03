@@ -10,6 +10,7 @@ namespace SystemBackend.Models.DTO
         public required Guid DeviceId { get; set; }
         public required Guid RoomId { get; set; }
         public required string CivilianId { get; set; }
+        public required bool In { get; set; }
     }
 
     public class AddLogFromDeviceDto
@@ -30,5 +31,6 @@ namespace SystemBackend.Models.DTO
         public RoomDto Room { get; set; }
         public required string CivilianId { get; set; }
         public CivilianDto Civilian { get; set; }
+        public required bool In { get; set; }
     }
 }

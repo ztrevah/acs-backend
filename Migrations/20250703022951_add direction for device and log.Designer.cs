@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemBackend.Data;
 
@@ -11,9 +12,11 @@ using SystemBackend.Data;
 namespace SystemBackend.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250703022951_add direction for device and log")]
+    partial class adddirectionfordeviceandlog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -59,7 +62,9 @@ namespace SystemBackend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("In")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<Guid?>("RoomId")
                         .HasColumnType("uniqueidentifier");
@@ -92,7 +97,9 @@ namespace SystemBackend.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("In")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
                     b.Property<Guid>("RoomId")
                         .HasColumnType("uniqueidentifier");
@@ -206,7 +213,9 @@ namespace SystemBackend.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("EndTime")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValue(new DateTime(9999, 12, 31, 23, 59, 59, 999, DateTimeKind.Unspecified).AddTicks(9999));
 
                     b.Property<string>("MemberId")
                         .IsRequired()
@@ -216,7 +225,9 @@ namespace SystemBackend.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartTime")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
                     b.HasKey("Id");
 
