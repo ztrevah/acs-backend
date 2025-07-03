@@ -369,7 +369,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/devices")]
-        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public IActionResult GetRoomDevices([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool? isIn = null)
         {
             if (limit < 0)
             {
@@ -388,7 +388,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var devices = _roomService.GetDevices(roomId, cursorId, next, limit + 1, keyword)
+            var devices = _roomService.GetDevices(roomId, cursorId, next, limit + 1, keyword, isIn)
                 .Select(d => d.FromDeviceToDeviceDto())
                 .ToList();
 

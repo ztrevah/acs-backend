@@ -21,7 +21,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("")]
-        public IActionResult GetDevices(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public IActionResult GetDevices(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool? isIn = null)
         {
             if (limit < 0)
             {
@@ -31,7 +31,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var devices = _deviceService.GetDevices(cursorId, next, limit + 1, keyword)
+            var devices = _deviceService.GetDevices(cursorId, next, limit + 1, keyword, isIn)
                 .Select(d => d.FromDeviceToDeviceDto())
                 .ToList();
 

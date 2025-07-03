@@ -36,11 +36,13 @@ namespace SystemBackend.Repositories
             _dbContext.SaveChanges();
             return existingDevice;
         }
-        public List<Device> Get(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<Device> Get(Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool? isIn = null)
         {
             var query = _dbContext.Devices.AsQueryable();
 
             if (keyword != null) query = query.Where(d => d.Id.ToString().StartsWith(keyword));
+
+            if(isIn != null) query = query.Where(d => d.In == isIn);
 
             if (next) query = query.Where(d => (cursorId == null || d.Id >= cursorId))
                 .OrderBy(d => d.Id);
@@ -53,12 +55,14 @@ namespace SystemBackend.Repositories
 
             return devices;
         }
-        public List<Device> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<Device> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool? isIn = null)
         {
             var query = _dbContext.Devices.AsQueryable();
             query = query.Where(d => d.RoomId == roomId);
 
             if (keyword != null) query = query.Where(d => d.Id.ToString().StartsWith(keyword));
+
+            if (isIn != null) query = query.Where(d => d.In == isIn);
 
             if (next) query = query.Where(d => (cursorId == null || d.Id >= cursorId))
                     .OrderBy(d => d.Id);

@@ -44,9 +44,9 @@ namespace SystemBackend.Services
             return _roomRepository.Update(id, room);
         }
 
-        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<Device> GetDevices(Guid roomId, Guid? deviceCursorId = null, bool next = true, int? limit = null, string? keyword = null, bool? isIn = null)
         {
-            return _deviceRepository.GetByRoomId(roomId, deviceCursorId, next, limit, keyword);
+            return _deviceRepository.GetByRoomId(roomId, deviceCursorId, next, limit, keyword, isIn);
         }
         public Device? AddDevice(Guid roomId, Guid deviceId)
         {
