@@ -16,4 +16,23 @@
         public DateTime? DisabledStartTime { get; set; } = null;
         public DateTime? DisabledEndTime { get; set; } = null;
     }
+
+    public enum AccessStatus
+    {
+        DISABLED,
+        ALLOWED,
+        PENDING,
+        EXPIRED,
+        UNKNOWN
+    }
+
+    public class RoomMemberWithStatus
+    {
+        public required Guid RoomId { get; set; }
+        public Room Room { get; set; }
+
+        public required string MemberId { get; set; }
+        public Civilian Member { get; set; }
+        public required AccessStatus Status { get; set; }
+    }
 }

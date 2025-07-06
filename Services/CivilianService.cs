@@ -28,24 +28,14 @@ namespace SystemBackend.Services
             return _civilianRepository.Get(cursorId, next, limit, keyword);
         }
 
-        public List<RoomMember> GetRoomMembers(string civilianId, Guid? roomMemberCursorId = null, bool next = true, int? limit = null, string? keyword = null)
-        {
-            if(_civilianRepository.GetById(civilianId) == null)
-            {
-                return [];
-            }
-
-            return _roomMemberRepository.GetByMemberId(civilianId, roomMemberCursorId, next, limit, keyword);
-        }
-
-        public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<Room> GetAccessibleRooms(string civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             if (_civilianRepository.GetById(civilianId) == null)
             {
                 return [];
             }
 
-            return _civilianRepository.GetAccessibleRooms(civilianId, roomCursorId, next, limit, keyword);
+            return _roomMemberRepository.GetAccessibleRoomsByMemberId(civilianId, roomCursorId, next, limit, keyword);
         }
         public Civilian? AddCivilian(AddCivilianDto addCivilianDto)
         {

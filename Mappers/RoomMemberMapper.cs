@@ -49,5 +49,22 @@ namespace SystemBackend.Mappers
                 DisabledEndTime = roomMember.DisabledEndTime,
             };
         }
+
+        public static string FromAccessStatusToString(this AccessStatus status)
+        {
+            switch (status)
+            {
+                case AccessStatus.DISABLED:
+                    return "Disabled";
+                case AccessStatus.ALLOWED:
+                    return "Allowed";
+                case AccessStatus.PENDING:
+                    return "Pending";
+                case AccessStatus.EXPIRED:
+                    return "Expired";
+                default:
+                    return "Unknown";
+            }
+        }
     }
 }

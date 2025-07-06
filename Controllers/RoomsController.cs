@@ -121,7 +121,7 @@ namespace SystemBackend.Controllers
         }
 
         [HttpGet("{roomId}/members")]
-        public IActionResult GetRoomMembers([FromRoute] Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
+        public IActionResult GetRoomMembers([FromRoute] Guid roomId, string? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
         {
             if (limit < 0)
             {
@@ -141,10 +141,20 @@ namespace SystemBackend.Controllers
             }
 
             var members = _roomService.GetMembers(roomId, cursorId, next, limit + 1, keyword, onlyAllowed)
-                .Select(m => m.FromRoomMemberToDetailResponselDto())
+                .Select(m => new
+                {
+                    m.Id,
+                    m.Name,
+                    m.DateOfBirth,
+                    m.Hometown,
+                    m.ImageUrl,
+                    m.Email,
+                    m.PhoneNumber,
+                    Status = _roomService.GetRoomMemberStatus(roomId, m.Id).FromAccessStatusToString(),
+                })
                 .ToList();
 
-            var nextId = (members.Count == limit + 1) ? (Guid?) members.Last().Id : null;
+            var nextId = (members.Count == limit + 1) ? members.Last().Id : null;
             if (members.Count == limit + 1) members.Remove(members.Last());
             return Ok(new
             {
@@ -154,8 +164,8 @@ namespace SystemBackend.Controllers
             });
         }
 
-        [HttpPost("{roomId}/members")]
-        public IActionResult AddNewMemberToRoom([FromRoute] Guid roomId, [FromBody] AddRoomMemberDto addRoomMemberDto)
+        [HttpGet("{roomId}/members/{civilianId}")]
+        public IActionResult GetRoomMemberInfo([FromRoute] Guid roomId, [FromRoute] string civilianId)
         {
             var room = _roomService.GetRoomById(roomId);
             if (room == null)
@@ -166,7 +176,7 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var civilian = _civilianService.GetCivilianById(addRoomMemberDto.MemberId);
+            var civilian = _civilianService.GetCivilianById(civilianId);
             if (civilian == null)
             {
                 return NotFound(new
@@ -175,11 +185,37 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            if(_roomService.GetMember(roomId, addRoomMemberDto.MemberId) != null)
+            var rm = _roomService.GetMemberRights(roomId, civilianId)
+                .Select(rm => rm.FromRoomMemberToRoomMemberDto())
+                .ToList();
+
+            return Ok(new
             {
-                return BadRequest(new
+                RoomId = roomId,
+                MemberId = civilianId,
+                Status = _roomService.GetRoomMemberStatus(roomId, civilianId).FromAccessStatusToString(),
+                AccessRights = rm
+            });
+        }
+
+        [HttpPost("{roomId}/members/{civilianId}/rights")]
+        public IActionResult AddRoomMemberRights([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromBody] AddRoomMemberDto addRoomMemberDto)
+        {
+            var room = _roomService.GetRoomById(roomId);
+            if (room == null)
+            {
+                return NotFound(new
                 {
-                    error = new { message = "This member has already been included in the room." }
+                    error = new { message = "Room not found." }
+                });
+            }
+
+            var civilian = _civilianService.GetCivilianById(civilianId);
+            if (civilian == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Civilian not found." }
                 });
             }
 
@@ -203,17 +239,16 @@ namespace SystemBackend.Controllers
 
             try
             {
-                var newRoomMember = _roomService.AddRoomMember(roomId, addRoomMemberDto);
+                var newRoomMember = _roomService.AddRoomMember(roomId, civilianId, addRoomMemberDto);
                 if(newRoomMember == null)
                 {
-                    return StatusCode(500, new
+                    return BadRequest(new
                     {
-                        error = new { message = "Internal server error." }
+                        error = new { message = "Conflicted access period." }
                     });
                 }
 
-                var locationUri = $"{Request.Host}/{Request.Path}/{civilian.Id}";
-                return Created(locationUri, newRoomMember.FromRoomMemberToRoomMemberDto());
+                return CreatedAtAction(nameof(GetRoomMember), new { roomId, civilianId, newRoomMember.Id }, newRoomMember.FromRoomMemberToRoomMemberDto());
             }
             catch(Exception e)
             {
@@ -224,8 +259,8 @@ namespace SystemBackend.Controllers
             }
         }
 
-        [HttpGet("{roomId}/members/{civilianId}")]
-        public IActionResult GetRoomMember([FromRoute] Guid roomId, [FromRoute] string civilianId)
+        [HttpGet("{roomId}/members/{civilianId}/rights/{id}")]
+        public IActionResult GetRoomMember([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromRoute] Guid id)
         {
             var room = _roomService.GetRoomById(roomId);
             if (room == null)
@@ -245,26 +280,26 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var rm = _roomService.GetMember(roomId, civilianId);
-            if (rm == null)
+            var roomMember = _roomService.GetRoomMember(id, roomId, civilianId);
+            if (roomMember == null)
             {
-                return BadRequest(new
+                return NotFound(new
                 {
-                    error = new { message = "This member has already been included in the room." }
+                    error = new { message = "Room member's access right not found." }
                 });
             }
 
-            return Ok(rm.FromRoomMemberToDetailResponselDto());
+            return Ok(roomMember.FromRoomMemberToDetailResponselDto());
         }
 
-        [HttpPut("{roomId}/members/{civilianId}")]
-        public IActionResult UpdateRoomMember([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromBody] UpdateRoomMemberDto updateRoomMemberDto)
+        [HttpPut("{roomId}/members/{civilianId}/rights/{id}")]
+        public IActionResult UpdateRoomMemberRight([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromRoute] Guid id, [FromBody] UpdateRoomMemberDto updateRoomMemberDto)
         {
-            if (_roomService.GetMember(roomId, civilianId) == null)
+            if (_roomService.GetRoomMember(id, roomId, civilianId) == null)
             {
-                return BadRequest(new
+                return NotFound(new
                 {
-                    error = new { message = "This member has already been included in the room." }
+                    error = new { message = "Room member's access right not found." }
                 });
             }
 
@@ -288,12 +323,12 @@ namespace SystemBackend.Controllers
 
             try
             {
-                var newRoomMember = _roomService.UpdateRoomMember(roomId, civilianId, updateRoomMemberDto);
+                var newRoomMember = _roomService.UpdateRoomMember(id, updateRoomMemberDto);
                 if (newRoomMember == null)
                 {
-                    return StatusCode(500, new
+                    return StatusCode(400, new
                     {
-                        error = new { message = "Internal server error." }
+                        error = new { message = "Conflicted access period." }
                     });
                 }
 
@@ -301,7 +336,7 @@ namespace SystemBackend.Controllers
             }
             catch (Exception)
             {
-                return StatusCode(500, new
+                return BadRequest(new
                 {
                     error = new { message = "Internal server error." }
                 });
@@ -331,25 +366,57 @@ namespace SystemBackend.Controllers
 
             try
             {
-                var roomMember = _roomService.GetMember(roomId, civilianId);
-                if (roomMember == null)
-                {
-                    return NotFound(new
-                    {
-                        error = new { message = "This civilian has not been a member of this room." }
-                    });
-                }
+                var numRemovedRights = _roomService.RemoveAllMemberRights(roomId, civilianId);
 
-                if (roomMember.EndTime <= DateTime.UtcNow)
+                return Ok(new
                 {
-                    return BadRequest(new
-                    {
-                        error = new { message = "This member's access right has already expired." }
-                    });
-                }
+                    RoomId = roomId,
+                    MemberId = civilianId,
+                    count = numRemovedRights
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    error = new { message = "Internal server error." }
+                });
+            }
+        }
 
-                var removedMember = _roomService.RemoveMember(roomId, civilianId);
-                if (removedMember == null)
+        [HttpDelete("{roomId}/members/{civilianId}/rights/{id}")]
+        public IActionResult RemoveMemberRight([FromRoute] Guid roomId, [FromRoute] string civilianId, [FromRoute] Guid id)
+        {
+            var room = _roomService.GetRoomById(roomId);
+            if (room == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Room not found." }
+                });
+            }
+
+            var civilian = _civilianService.GetCivilianById(civilianId);
+            if (civilian == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Civilian not found." }
+                });
+            }
+
+            if (_roomService.GetRoomMember(id, roomId, civilianId) == null)
+            {
+                return NotFound(new
+                {
+                    error = new { message = "Room member's access right not found." }
+                });
+            }
+
+            try
+            {
+                var removedRight = _roomService.RemoveRoomMember(id);
+                if (removedRight == null)
                 {
                     return StatusCode(500, new
                     {
@@ -357,7 +424,7 @@ namespace SystemBackend.Controllers
                     });
                 }
 
-                return Ok(removedMember);
+                return Ok(removedRight.FromRoomMemberToDetailResponselDto());
             }
             catch (Exception)
             {

@@ -10,14 +10,16 @@ namespace SystemBackend.Services
         private readonly IDeviceRepository _deviceRepository;
         private readonly IRoomRepository _roomRepository;
         private readonly ICivilianRepository _civilianRepository;
-        public DeviceService(IDeviceRepository deviceRepository, IRoomRepository roomRepository, ICivilianRepository civilianRepository)
+        private readonly IRoomMemberRepository _roomMemberRepository;
+        public DeviceService(IDeviceRepository deviceRepository, IRoomRepository roomRepository, ICivilianRepository civilianRepository, IRoomMemberRepository roomMemberRepository)
         {
             _deviceRepository = deviceRepository;
             _roomRepository = roomRepository;
             _civilianRepository = civilianRepository;
+            _roomMemberRepository = roomMemberRepository;
         }
 
-        public RoomMember? AddMember(Guid deviceId, String civilianId)
+        public RoomMember? AddMember(Guid deviceId, string civilianId)
         {
             if(_deviceRepository.GetById(deviceId) == null)
             {
@@ -32,9 +34,16 @@ namespace SystemBackend.Services
             return _deviceRepository.AddMember(deviceId, civilianId);
         }
 
-        public RoomMember? CheckMemberAccessRight(Guid deviceId, string civilianId)
+        public AccessStatus CheckMemberAccessRight(Guid deviceId, string civilianId)
         {
-            return _deviceRepository.CheckMemberAccessRight(deviceId, civilianId);
+            var device = _deviceRepository.GetById(deviceId);
+
+            if (device == null || device.RoomId == null)
+            {
+                return AccessStatus.UNKNOWN;
+            }
+
+            return _roomMemberRepository.GetAccessStatus((Guid) device.RoomId, civilianId);
         }
 
         public Device? GetDeviceById(Guid id)

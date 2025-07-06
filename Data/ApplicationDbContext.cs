@@ -16,6 +16,17 @@ namespace SystemBackend.Data
         public DbSet<RoomMember> RoomMembers { get; set; }
         public DbSet<Log> Logs { get; set; }
 
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            base.ConfigureConventions(configurationBuilder);
+
+            configurationBuilder.Properties<DateTime>()
+                .HavePrecision(3);
+
+            configurationBuilder.Properties<DateTime?>()
+                .HavePrecision(3);
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<User>(entity => {
@@ -81,6 +92,8 @@ namespace SystemBackend.Data
                     .HasForeignKey(d => d.RoomId)
                     .IsRequired(false)
                     .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasIndex(d => d.RoomId);
             });
 
             modelBuilder.Entity<Civilian>(entity =>
@@ -122,9 +135,11 @@ namespace SystemBackend.Data
                         "(DisabledStartTime IS NOT NULL AND DisabledEndTime IS NOT NULL AND DisabledStartTime >= StartTime AND DisabledEndTime <= EndTime)");
                 });
 
-                entity.HasIndex(rm => new { rm.MemberId, rm.RoomId }).IsUnique();
                 entity.HasIndex(rm => rm.MemberId);
                 entity.HasIndex(rm => rm.RoomId);
+                entity.HasIndex(rm => new { rm.RoomId, rm.MemberId });
+                entity.HasIndex(rm => new { rm.StartTime, rm.EndTime });
+                entity.HasIndex(rm => new { rm.DisabledStartTime, rm.DisabledEndTime });
             });
 
             modelBuilder.Entity<Log>(entity =>

@@ -62,27 +62,21 @@ namespace SystemBackend.Services
             return _roomRepository.AddDeviceToRoom(roomId, deviceId);
         }
 
-        public RoomMember? GetMember(Guid roomId, string civilianId)
-        {
-            return _roomRepository.GetRoomMember(roomId, civilianId);
-        }
 
-        public List<RoomMember> GetMembers(Guid roomId, Guid? roomMemberId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
+        public List<Civilian> GetMembers(Guid roomId, string? cursorId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
         {
-            return _roomRepository.GetRoomMembers(roomId, roomMemberId, next, limit, keyword, onlyAllowed);
+            return _roomMemberRepository.GetMembersByRoomId(roomId, cursorId, next, limit, keyword, onlyAllowed);
         }
-        public RoomMember? AddRoomMember(Guid roomId, AddRoomMemberDto addRoomMemberDto)
+        public List<RoomMember> GetMemberRights(Guid roomId, string civilianId)
         {
-            //if (addRoomMemberDto.StartTime > addRoomMemberDto.EndTime || addRoomMemberDto.DisabledStartTime > addRoomMemberDto.DisabledEndTime
-            //    || addRoomMemberDto.DisabledStartTime < addRoomMemberDto.StartTime || addRoomMemberDto.DisabledEndTime > addRoomMemberDto.EndTime)
-            //{
-            //    return null;
-            //}
-
+            return _roomMemberRepository.GetByRoomAndMember(roomId, civilianId);
+        }
+        public RoomMember? AddRoomMember(Guid roomId, string civilianId, AddRoomMemberDto addRoomMemberDto)
+        {
             var newRoomMember = new RoomMember
             {
                 RoomId = roomId,
-                MemberId = addRoomMemberDto.MemberId,
+                MemberId = civilianId,
                 StartTime = addRoomMemberDto.StartTime,
                 EndTime = addRoomMemberDto.EndTime,
                 DisabledStartTime = addRoomMemberDto.DisabledStartTime,
@@ -91,9 +85,9 @@ namespace SystemBackend.Services
 
             return _roomMemberRepository.Create(newRoomMember);
         }
-        public RoomMember? UpdateRoomMember(Guid roomId, string civilianId, UpdateRoomMemberDto updateRoomMemberDto)
+        public RoomMember? UpdateRoomMember(Guid id, UpdateRoomMemberDto updateRoomMemberDto)
         {
-            var rm = _roomMemberRepository.GetByRoomAndMember(roomId, civilianId);
+            var rm = _roomMemberRepository.GetById(id);
             if (rm == null)
             {
                 return null;
@@ -106,9 +100,33 @@ namespace SystemBackend.Services
 
             return _roomMemberRepository.Update(rm.Id, rm);
         }
-        public RoomMember? RemoveMember(Guid roomId, string civilianId)
+        public RoomMember? RemoveRoomMember(Guid id)
+        {
+            return _roomMemberRepository.Remove(id);
+        }
+        public int RemoveAllMemberRights(Guid roomId, string civilianId)
         {
             return _roomMemberRepository.Remove(roomId, civilianId);
+        }
+
+        public AccessStatus GetRightStatus(Guid id)
+        {
+            return _roomMemberRepository.GetRightStatus(id);
+        }
+
+        public AccessStatus GetRoomMemberStatus(Guid roomId, string civilianId)
+        {
+            return _roomMemberRepository.GetAccessStatus(roomId, civilianId);
+        }
+
+        public RoomMember? GetRoomMember(Guid id)
+        {
+            return _roomMemberRepository.GetById(id);
+        }
+
+        public RoomMember? GetRoomMember(Guid id,Guid roomId, string civilianId)
+        {
+            return _roomMemberRepository.GetById(id, roomId, civilianId);
         }
     }
 }

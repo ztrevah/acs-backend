@@ -12,12 +12,10 @@ namespace SystemBackend.Controllers
     public class DevicesController : ControllerBase
     {
         private readonly IDeviceService _deviceService;
-        private readonly ICivilianService _civilianService;
 
-        public DevicesController(IDeviceService deviceService, ICivilianService civilianService)
+        public DevicesController(IDeviceService deviceService)
         {
             _deviceService = deviceService;
-            _civilianService = civilianService;
         }
 
         [HttpGet("")]
@@ -148,16 +146,16 @@ namespace SystemBackend.Controllers
                 });
             }
 
-            var allowedRoomMember = _deviceService.CheckMemberAccessRight(deviceId, civilianId);
-            if (allowedRoomMember == null)
+            var status = _deviceService.CheckMemberAccessRight(deviceId, civilianId);
+            if (status != Models.Entities.AccessStatus.ALLOWED)
             {
                 return StatusCode(403, new
                 {
-                    error = new { message = "This person is not allowed." }
+                    error = new { message = status.FromAccessStatusToString() }
                 });
             }
             
-            return Ok(allowedRoomMember.FromRoomMemberToDetailResponselDto());
+            return Ok();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using SystemBackend.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using SystemBackend.Data;
 using SystemBackend.Models.DTO;
 using SystemBackend.Models.Entities;
 using SystemBackend.Repositories.Interfaces;
@@ -16,15 +17,60 @@ namespace SystemBackend.Repositories
         {
             return _dbContext.RoomMembers.FirstOrDefault(x => x.Id == id);
         }
-        public RoomMember? GetByRoomAndMember(Guid roomId, string civilianId)
+        public RoomMember? GetById(Guid id, Guid roomId, string civilianId)
         {
-            return _dbContext.RoomMembers.FirstOrDefault(rm => rm.RoomId == roomId && rm.MemberId == civilianId);
+            return _dbContext.RoomMembers.FirstOrDefault(x => x.Id == id && x.RoomId == roomId && x.MemberId == civilianId);
         }
+        public List<RoomMember> GetByRoomAndMember(Guid roomId, string civilianId, Guid? cursorId = null, bool next = true, int? limit = null)
+        {
+            var query = _dbContext.RoomMembers.AsQueryable();
+
+            query = query.Where(rm => rm.RoomId == roomId && rm.MemberId == civilianId);
+
+            if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
+                    .OrderBy(rm => rm.Id);
+            else query = query.Where(rm => cursorId == null || rm.Id <= cursorId)
+                    .OrderByDescending(rm => rm.Id);
+
+            if (limit != null && limit >= 0) query = query.Take((int)limit);
+
+            return query.ToList();
+        }
+
+        public AccessStatus GetRightStatus(Guid id)
+        {
+            var right = _dbContext.RoomMembers.FirstOrDefault(r => r.Id == id);
+            if (right == null) return AccessStatus.UNKNOWN;
+
+            if (right.StartTime > DateTime.UtcNow) return AccessStatus.PENDING;
+
+            if (right.EndTime < DateTime.UtcNow) return AccessStatus.EXPIRED;
+
+            if (right.DisabledStartTime <= DateTime.UtcNow && DateTime.UtcNow <= right.DisabledEndTime) return AccessStatus.DISABLED;
+
+            return AccessStatus.ALLOWED;
+        }
+
+        public AccessStatus GetAccessStatus(Guid roomId, string civilianId)
+        {
+            List<RoomMember> accessRights = GetByRoomAndMember(roomId, civilianId);
+            AccessStatus accessStatus = AccessStatus.UNKNOWN;
+
+            foreach (var right in accessRights)
+            {
+                if (GetRightStatus(right.Id) < accessStatus)
+                {
+                    accessStatus = GetRightStatus(right.Id);
+                }
+            }
+
+            return accessStatus;
+        }
+
         public RoomMember? Create(RoomMember roomMember)
         {
             if(_dbContext.Rooms.FirstOrDefault(r => r.Id ==  roomMember.RoomId) == null
-                || _dbContext.Civilians.FirstOrDefault(c => c.Id == roomMember.MemberId) == null
-                || _dbContext.RoomMembers.FirstOrDefault(rm => rm.RoomId == roomMember.RoomId && rm.MemberId == roomMember.MemberId) != null)
+                || _dbContext.Civilians.FirstOrDefault(c => c.Id == roomMember.MemberId) == null)
             {
                 return null;
             }
@@ -37,6 +83,18 @@ namespace SystemBackend.Repositories
 
             if (roomMember.StartTime > roomMember.EndTime || roomMember.DisabledStartTime > roomMember.DisabledEndTime
                 || roomMember.DisabledStartTime < roomMember.StartTime || roomMember.DisabledEndTime > roomMember.EndTime)
+            {
+                return null;
+            }
+
+            if(GetByRoomAndMember(roomMember.RoomId, roomMember.MemberId).Count >= 20) { return null; }
+
+            var conflictedMemberRights = _dbContext.RoomMembers
+                .Where(rm => rm.MemberId == roomMember.MemberId && rm.RoomId == roomMember.RoomId)
+                .Where(rm => !(rm.EndTime <= roomMember.StartTime || rm.StartTime >= roomMember.EndTime))
+                .ToList();
+
+            if(conflictedMemberRights.Count > 0)
             {
                 return null;
             }
@@ -64,6 +122,22 @@ namespace SystemBackend.Repositories
                 return null;
             }
 
+            var conflictedMemberRights = _dbContext.RoomMembers
+                .Where(rm => rm.MemberId == exisitingRoomMember.MemberId && rm.RoomId == exisitingRoomMember.RoomId)
+                .Where(rm => !(rm.EndTime <= roomMember.StartTime || rm.StartTime >= roomMember.EndTime))
+                .ToList();
+
+            if (conflictedMemberRights.Count > 1)
+            {
+                Console.WriteLine(conflictedMemberRights.Count);
+                return null;
+            }
+
+            if(conflictedMemberRights.Count == 1 && conflictedMemberRights.First().Id != id)
+            {
+                return null;
+            }
+
             exisitingRoomMember.StartTime = roomMember.StartTime;
             exisitingRoomMember.EndTime = roomMember.EndTime;
             exisitingRoomMember.DisabledStartTime = roomMember.DisabledStartTime;
@@ -72,26 +146,26 @@ namespace SystemBackend.Repositories
             return exisitingRoomMember;
         }
 
-        public RoomMember? Remove(Guid roomId, string civilianId)
+        public int Remove(Guid roomId, string civilianId)
         {
-            var roomMember = _dbContext.RoomMembers.FirstOrDefault(rm => rm.RoomId == roomId && rm.MemberId == civilianId);
-            if (roomMember == null)
-            {
-                return null;
-            }
+            var roomMembers = _dbContext.RoomMembers.Where(rm => rm.RoomId == roomId && rm.MemberId == civilianId).ToList();
+            _dbContext.RemoveRange(roomMembers);
+            _dbContext.SaveChanges();
 
-            if (roomMember.EndTime > DateTime.UtcNow)
-            {
-                roomMember.EndTime = DateTime.UtcNow;
-                roomMember.DisabledStartTime = null;
-                roomMember.DisabledEndTime = null;
-                _dbContext.SaveChanges();
-            }
+            return roomMembers.Count;
+        }
 
+        public RoomMember? Remove(Guid id)
+        {
+            var roomMember = _dbContext.RoomMembers.FirstOrDefault(rm => rm.Id == id);
+            if(roomMember == null) return null;
+
+            _dbContext.Remove(roomMember);
+            _dbContext.SaveChanges();
             return roomMember;
         }
 
-        public List<RoomMember> GetByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<RoomMember> GetAccessRightsByRoomId(Guid roomId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
             query = query.Where(rm => rm.RoomId == roomId);
@@ -107,10 +181,13 @@ namespace SystemBackend.Repositories
 
             return roomMembers;
         }
-        public List<RoomMember> GetByMemberId(string memberId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
+        public List<RoomMember> GetAccessRightsByMemberId(string memberId, Guid? cursorId = null, bool next = true, int? limit = null, string? keyword = null)
         {
             var query = _dbContext.RoomMembers.AsQueryable();
-            query = query.Where(rm => rm.MemberId == memberId);
+            query = query.Where(rm => rm.MemberId == memberId)
+                .Include(rm => rm.Room);
+
+            if (keyword != null) query = query.Where(rm => rm.RoomId.ToString().StartsWith(keyword) || rm.Room.Name.Contains(keyword));
 
             if (next) query = query.Where(rm => cursorId == null || rm.Id >= cursorId)
                     .OrderBy(rm => rm.Id);
@@ -122,6 +199,56 @@ namespace SystemBackend.Repositories
             var roomMembers = query.ToList();
 
             return roomMembers;
+        } 
+
+        public List<Civilian> GetMembersByRoomId(Guid roomId, string? civilianCursorId = null, bool next = true, int? limit = null, string? keyword = null, bool onlyAllowed = false)
+        {
+            var query = _dbContext.RoomMembers.AsQueryable();
+
+            query = query.Where(rm => rm.RoomId == roomId)
+                .Include(rm => rm.Member);
+
+            if (keyword != null) query = query.Where(c => c.Member.Id.StartsWith(keyword) || c.Member.Name.Contains(keyword));
+
+            if (onlyAllowed)
+            {
+                query = query.Where(rm => rm.StartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.EndTime
+                                        && (rm.DisabledStartTime == null || !(rm.DisabledStartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.DisabledEndTime)));
+            }
+
+            if (next) query = query.Where(c => civilianCursorId == null || c.MemberId.CompareTo(civilianCursorId) >= 0)
+                .OrderBy(c => c.Id);
+
+            else query = query.Where(c => civilianCursorId == null || c.MemberId.CompareTo(civilianCursorId) <= 0)
+                .OrderByDescending(c => c.Id);
+
+
+            var civilians = query.Select(rm => rm.Member).Distinct();
+
+            if (limit != null && limit >= 0) civilians = civilians.Take((int)limit);
+
+            return civilians.ToList();
+        }
+
+        public List<Room> GetAccessibleRoomsByMemberId(string memberId, Guid? cursorRoomId = null, bool next = true, int? limit = null, string? keyword = null)
+        {
+            var query = _dbContext.RoomMembers.AsQueryable();
+            query = query.Where(rm => rm.MemberId == memberId)
+                .Where(rm => rm.StartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.EndTime
+                            && (rm.DisabledStartTime == null || !(rm.DisabledStartTime <= DateTime.UtcNow && DateTime.UtcNow <= rm.DisabledEndTime)))
+                .Include(rm => rm.Room);
+
+            if (keyword != null) query = query.Where(rm => rm.RoomId.ToString().StartsWith(keyword) || rm.Room.Name.Contains(keyword));
+
+            if (next) query = query.Where(r => (cursorRoomId == null || r.RoomId >= cursorRoomId))
+                .OrderBy(rm => rm.RoomId);
+            else query = query.Where(r => (cursorRoomId == null || r.RoomId <= cursorRoomId))
+                .OrderByDescending(rm => rm.RoomId);
+
+            var rooms = query.Select(rm => rm.Room).Distinct();
+            if (limit != null && limit >= 0) rooms = rooms.Take((int)limit);
+
+            return rooms.ToList();
         }
     }
 }

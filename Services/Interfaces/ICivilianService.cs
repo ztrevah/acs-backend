@@ -9,7 +9,6 @@ namespace SystemBackend.Services.Interfaces
         public List<Civilian> GetCivilians(String? cursorId = null, bool next = true, int? limit = null, string? keyword = null);
         public Civilian? AddCivilian(AddCivilianDto addCivilianDto);
         public Civilian? UpdateCivilian(String id, UpdateCivilianDto updateCivilianDto);
-        public List<RoomMember> GetRoomMembers(String civilianId, Guid? roomMemberCursorId = null, bool next = true, int? limit = null, string? keyword = null);
         public List<Room> GetAccessibleRooms(String civilianId, Guid? roomCursorId = null, bool next = true, int? limit = null, string? keyword = null);
     }
 }
